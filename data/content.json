@@ -1,0 +1,116 @@
+{
+  "heroSection": {
+    "title": "Unified Software for Any Vending Machine",
+    "subtitle": "Our cloud-based platform integrates with vending machines from all major manufacturers, giving you complete control of your entire fleet.",
+    "ctaPrimary": "See It In Action",
+    "ctaSecondary": "Integration Partners",
+    "image": "/images/hero-dashboard.png"
+  },
+  "productTypes": [
+    {
+      "id": "grocery",
+      "title": "Grocery",
+      "description": "Sell grocery items through automated retail with inventory management and freshness tracking.",
+      "image": "/images/products/grocery.jpg"
+    },
+    {
+      "id": "vape",
+      "title": "Vape",
+      "description": "Age verification and compliance features for vape product sales through automated retail.",
+      "image": "/images/products/vape.jpg"
+    },
+    {
+      "id": "cannabis",
+      "title": "Cannabis",
+      "description": "Secure, compliant cannabis sales with age verification and inventory tracking.",
+      "image": "/images/products/cannabis.jpg"
+    },
+    {
+      "id": "fresh-food",
+      "title": "Fresh Food",
+      "description": "Temperature monitoring and freshness tracking for perishable food items.",
+      "image": "/images/products/fresh-food.jpg"
+    }
+  ],
+  "businessGoals": [
+    {
+      "id": "expand-footprint",
+      "title": "Expand Footprint",
+      "description": "Grow your vending business with data-driven location selection and performance tracking.",
+      "image": "/images/goals/expand.jpg"
+    },
+    {
+      "id": "bopis",
+      "title": "Buy Online, Pickup In Store",
+      "description": "Enable customers to purchase online and pick up from your vending machines.",
+      "image": "/images/goals/bopis.jpg"
+    },
+    {
+      "id": "loss-prevention",
+      "title": "Loss Prevention",
+      "description": "Reduce theft and inventory shrinkage with real-time monitoring and alerts.",
+      "image": "/images/goals/loss-prevention.jpg"
+    }
+  ],
+  "machines": [
+    {
+      "id": "ambient-vending",
+      "title": "Ambient Vending Machine",
+      "description": "Standard vending machine for non-perishable items at room temperature.",
+      "category": "Vending Machines",
+      "subcategory": "Ambient",
+      "image": "/images/machines/ambient.jpg"
+    },
+    {
+      "id": "refrigerated-vending",
+      "title": "Refrigerated Vending Machine",
+      "description": "Temperature-controlled vending for perishable items requiring refrigeration.",
+      "category": "Vending Machines",
+      "subcategory": "Refrigerated",
+      "image": "/images/machines/refrigerated.jpg"
+    },
+    {
+      "id": "ambient-locker",
+      "title": "Ambient Locker System",
+      "description": "Secure locker system for package pickup and delivery at room temperature.",
+      "category": "Lockers",
+      "subcategory": "Ambient",
+      "image": "/images/machines/locker.jpg"
+    }
+  ],
+  "testimonials": [
+    {
+      "quote": "AppleStone's software has transformed how we manage our 500+ machines. We've increased revenue by 28% and reduced service costs by 35% in just one year.",
+      "authorName": "Sarah Johnson",
+      "authorCompany": "Metro Vending Co."
+    },
+    {
+      "quote": "The ability to integrate with our mixed fleet of vending machines was a game-changer. We no longer need multiple systems to manage different machine types.",
+      "authorName": "Michael Chen",
+      "authorCompany": "Pacific Refreshments"
+    }
+  ],
+  "blogPosts": [
+    {
+      "id": "new-payment-options",
+      "title": "New Payment Options Added",
+      "excerpt": "We've added support for Apple Pay, Google Pay, and other digital wallet solutions to our platform.",
+      "date": "March 15, 2023",
+      "author": "Sarah Johnson",
+      "category": "Product Updates",
+      "image": "/images/blog/payments.jpg",
+      "content": "<p>We're excited to announce that we've expanded our payment options to include Apple Pay, Google Pay, and other popular digital wallet solutions. This update makes it even easier for your customers to make purchases at your vending machines.</p><h2>New Payment Options</h2><p>The following payment methods are now supported:</p><ul><li>Apple Pay</li><li>Google Pay</li><li>Samsung Pay</li><li>PayPal</li><li>Venmo</li></ul>"
+    },
+    {
+      "id": "inventory-management-upgrade",
+      "title": "Major Upgrade to Inventory Management",
+      "excerpt": "Our latest update includes AI-powered inventory predictions and improved expiration tracking.",
+      "date": "February 28, 2023",
+      "author": "Michael Chen",
+      "category": "Product Updates",
+      "image": "/images/blog/inventory.jpg",
+      "content": "<p>We're thrilled to announce a major upgrade to our inventory management system, featuring AI-powered predictions and enhanced expiration tracking capabilities.</p><h2>New Features</h2><p>This update includes several powerful new features:</p><ul><li>AI-powered inventory predictions</li><li>Enhanced expiration date tracking</li><li>Automated reordering suggestions</li><li>Improved inventory reporting</li></ul>"
+    }
+  ]
+}
+
