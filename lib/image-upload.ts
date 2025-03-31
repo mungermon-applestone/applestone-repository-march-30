@@ -26,10 +26,12 @@ export async function uploadImage(file: File, bucket = "images", folder = ""): P
     // Construct the file path
     const filePath = folder ? `${folder}/${fileName}` : fileName
 
-    // Upload the file
+    console.log("Uploading file:", filePath)
+
+    // Upload the file with public access
     const { data, error } = await supabase.storage.from(bucket).upload(filePath, file, {
       cacheControl: "3600",
-      upsert: false,
+      upsert: true, // Use upsert to overwrite if file exists
     })
 
     if (error) {
@@ -57,6 +59,46 @@ export async function uploadImage(file: File, bucket = "images", folder = ""): P
 }
 
 /**
+ * Lists all files in a bucket/folder
+ * @param bucket The storage bucket name (default: 'images')
+ * @param folder Optional folder path within the bucket
+ * @returns Array of file objects with URLs
+ */
+export async function listFiles(bucket = "images", folder = ""): Promise<any[]> {
+  try {
+    const supabase = createClientSupabaseClient()
+
+    const { data, error } = await supabase.storage.from(bucket).list(folder, {
+      sortBy: { column: "name", order: "asc" },
+    })
+
+    if (error) {
+      console.error("Error listing files:", error)
+      return []
+    }
+
+    // Add URLs to the files
+    const filesWithUrls = await Promise.all(
+      data.map(async (file) => {
+        const path = folder ? `${folder}/${file.name}` : file.name
+        const { data } = supabase.storage.from(bucket).getPublicUrl(path)
+
+        return {
+          ...file,
+          url: data.publicUrl,
+          path,
+        }
+      }),
+    )
+
+    return filesWithUrls
+  } catch (error) {
+    console.error("Error in listFiles:", error)
+    return []
+  }
+}
+
+/**
  * Deletes an image from Supabase Storage
  * @param path The path of the file to delete
  * @param bucket The storage bucket name (default: 'images')
@@ -76,6 +118,36 @@ export async function deleteImage(path: string, bucket = "images"): Promise<bool
     return true
   } catch (error) {
     console.error("Error in deleteImage:", error)
+    return false
+  }
+}
+
+/**
+ * Creates a folder in Supabase Storage
+ * @param folderName Name of the folder to create
+ * @param parentFolder Optional parent folder path
+ * @param bucket The storage bucket name (default: 'images')
+ * @returns Success status
+ */
+export async function createFolder(folderName: string, parentFolder = "", bucket = "images"): Promise<boolean> {
+  try {
+    const supabase = createClientSupabaseClient()
+
+    const folderPath = parentFolder ? `${parentFolder}/${folderName}/.placeholder` : `${folderName}/.placeholder`
+
+    // Create an empty file to represent the folder
+    const { error } = await supabase.storage.from(bucket).upload(folderPath, new Blob([""]), {
+      upsert: false,
+    })
+
+    if (error) {
+      console.error("Error creating folder:", error)
+      return false
+    }
+
+    return true
+  } catch (error) {
+    console.error("Error in createFolder:", error)
     return false
   }
 }

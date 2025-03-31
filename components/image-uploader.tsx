@@ -2,12 +2,14 @@
 
 import type React from "react"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { uploadImage, type UploadResult } from "@/lib/image-upload"
 import { Loader2, Upload, X, AlertCircle } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { MediaLibrarySelector } from "@/components/media-library-selector"
 
 interface ImageUploaderProps {
   onImageUploaded: (result: UploadResult) => void
@@ -15,6 +17,7 @@ interface ImageUploaderProps {
   bucket?: string
   folder?: string
   className?: string
+  showMediaLibrary?: boolean
 }
 
 export function ImageUploader({
@@ -23,11 +26,20 @@ export function ImageUploader({
   bucket = "images",
   folder = "",
   className = "",
+  showMediaLibrary = true,
 }: ImageUploaderProps) {
   const [isUploading, setIsUploading] = useState(false)
-  const [previewUrl, setPreviewUrl] = useState<string | null>(defaultImageUrl || null)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [mediaLibraryOpen, setMediaLibraryOpen] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // Set default image if provided
+  useEffect(() => {
+    if (defaultImageUrl) {
+      setPreviewUrl(defaultImageUrl)
+    }
+  }, [defaultImageUrl])
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -84,6 +96,12 @@ export function ImageUploader({
     if (fileInputRef.current) {
       fileInputRef.current.click()
     }
+  }
+
+  const handleMediaSelect = (url: string) => {
+    setPreviewUrl(url)
+    setMediaLibraryOpen(false)
+    onImageUploaded({ path: url, url })
   }
 
   return (
@@ -143,6 +161,22 @@ export function ImageUploader({
             <>{previewUrl ? "Change Image" : "Upload Image"}</>
           )}
         </Button>
+
+        {showMediaLibrary && (
+          <Dialog open={mediaLibraryOpen} onOpenChange={setMediaLibraryOpen}>
+            <DialogTrigger asChild>
+              <Button type="button" variant="secondary">
+                Media Library
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Media Library</DialogTitle>
+              </DialogHeader>
+              <MediaLibrarySelector onSelect={handleMediaSelect} />
+            </DialogContent>
+          </Dialog>
+        )}
 
         {error && (
           <Button type="button" variant="secondary" onClick={retryUpload}>
