@@ -1,17 +1,48 @@
-import Image from "next/image"
 import Link from "next/link"
+import Image from "next/image"
 import { ChevronRight } from "lucide-react"
-import { Button } from "@/components/ui/button"
 import { createServerSupabaseClient } from "@/lib/supabase"
 
 // Define the type for our product type data
 interface ProductType {
   id: number
+  slug: string
   title: string
   description: string
   image_url: string
-  slug: string
 }
+
+// Default product types in case the database is empty
+const defaultProductTypes: ProductType[] = [
+  {
+    id: 1,
+    slug: "grocery",
+    title: "Grocery",
+    description: "Sell grocery items through automated retail with inventory management and freshness tracking.",
+    image_url: "/placeholder.svg?height=300&width=400",
+  },
+  {
+    id: 2,
+    slug: "vape",
+    title: "Vape",
+    description: "Age verification and compliance features for vape product sales through automated retail.",
+    image_url: "/placeholder.svg?height=300&width=400",
+  },
+  {
+    id: 3,
+    slug: "cannabis",
+    title: "Cannabis",
+    description: "Secure, compliant cannabis sales with age verification and inventory tracking.",
+    image_url: "/placeholder.svg?height=300&width=400",
+  },
+  {
+    id: 4,
+    slug: "fresh-food",
+    title: "Fresh Food",
+    description: "Temperature monitoring and freshness tracking for perishable food items.",
+    image_url: "/placeholder.svg?height=300&width=400",
+  },
+]
 
 // Fetch product types from Supabase
 async function getProductTypes(): Promise<ProductType[]> {
@@ -20,62 +51,26 @@ async function getProductTypes(): Promise<ProductType[]> {
   try {
     const { data, error } = await supabase.from("product_types").select("*").order("id", { ascending: true }).limit(4)
 
-    if (error || !data) {
-      console.log("Error fetching product types or no data found")
-      return []
+    if (error || !data || data.length === 0) {
+      console.log("No product types found, using default")
+      return defaultProductTypes
     }
 
-    return data.map((product) => ({
-      id: product.id,
-      title: product.title,
-      description: product.description,
-      image_url: product.image_url || "/placeholder.svg?height=300&width=400",
-      slug: product.slug,
+    return data.map((item) => ({
+      id: item.id,
+      slug: item.slug || `product-${item.id}`,
+      title: item.title,
+      description: item.description,
+      image_url: item.image_url || "/placeholder.svg?height=300&width=400",
     }))
   } catch (error) {
     console.error("Error fetching product types:", error)
-    return []
+    return defaultProductTypes
   }
 }
 
 export async function ProductTypesPreview() {
   const productTypes = await getProductTypes()
-
-  // If no product types are found, use default data
-  const displayProducts =
-    productTypes.length > 0
-      ? productTypes
-      : [
-          {
-            id: 1,
-            title: "Grocery",
-            description:
-              "Sell grocery items through automated retail with inventory management and freshness tracking.",
-            image_url: "/placeholder.svg?height=300&width=400",
-            slug: "grocery",
-          },
-          {
-            id: 2,
-            title: "Vape",
-            description: "Age verification and compliance features for vape product sales through automated retail.",
-            image_url: "/placeholder.svg?height=300&width=400",
-            slug: "vape",
-          },
-          {
-            id: 3,
-            title: "Cannabis",
-            description: "Secure, compliant cannabis sales with age verification and inventory tracking.",
-            image_url: "/placeholder.svg?height=300&width=400",
-            slug: "cannabis",
-          },
-          {
-            id: 4,
-            title: "Fresh Food",
-            description: "Temperature monitoring and freshness tracking for perishable food items.",
-            image_url: "/placeholder.svg?height=300&width=400",
-            slug: "fresh-food",
-          },
-        ]
 
   return (
     <section className="w-full py-12 md:py-24 lg:py-32">
@@ -91,24 +86,26 @@ export async function ProductTypesPreview() {
             </p>
           </div>
         </div>
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 py-8">
-          {displayProducts.map((product) => (
-            <div key={product.id} className="group relative overflow-hidden rounded-lg border bg-background">
+        <div className="grid grid-cols-1 gap-6 mt-8 sm:grid-cols-2 lg:grid-cols-4">
+          {productTypes.map((productType) => (
+            <div key={productType.id} className="group relative overflow-hidden rounded-lg border bg-background">
               <div className="aspect-video overflow-hidden">
                 <Image
-                  src={product.image_url || "/placeholder.svg"}
-                  alt={product.title}
+                  src={productType.image_url || "/placeholder.svg"}
+                  alt={productType.title}
                   width={400}
                   height={300}
-                  className="object-cover transition-transform group-hover:scale-105"
+                  className="object-cover w-full h-full"
                 />
               </div>
               <div className="p-6">
-                <h3 className="text-xl font-bold">{product.title}</h3>
-                <p className="mt-2 text-muted-foreground">{product.description}</p>
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-xl font-bold">{productType.title}</h3>
+                </div>
+                <p className="text-gray-600">{productType.description}</p>
                 <Link
-                  href={`/products/${product.slug}`}
-                  className="mt-4 inline-flex items-center text-sm font-medium text-primary"
+                  href={`/products/${productType.slug}`}
+                  className="mt-4 inline-flex items-center text-sm font-medium text-blue-600"
                 >
                   Learn more <ChevronRight className="ml-1 h-4 w-4" />
                 </Link>
@@ -117,9 +114,12 @@ export async function ProductTypesPreview() {
           ))}
         </div>
         <div className="flex justify-center mt-8">
-          <Button size="lg" asChild>
-            <Link href="/products">View All Product Types</Link>
-          </Button>
+          <Link
+            href="/products"
+            className="inline-flex items-center justify-center rounded-md bg-[#2563EB] px-8 py-3 text-lg font-medium text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 w-[400px] max-w-full"
+          >
+            View All Product Types
+          </Link>
         </div>
       </div>
     </section>

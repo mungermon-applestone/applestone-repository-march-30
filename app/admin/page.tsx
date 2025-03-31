@@ -1,28 +1,74 @@
 import Link from "next/link"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { ImageIcon, FileTextIcon, LayoutDashboardIcon } from "lucide-react"
 
-export default function AdminDashboard() {
+export default function AdminPage() {
   return (
-    <div className="container mx-auto py-12 px-4">
+    <div className="container mx-auto px-4 py-12">
       <h1 className="text-3xl font-bold mb-8">Admin Dashboard</h1>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <DashboardCard title="Hero Section" description="Edit your homepage hero section" link="/admin/hero" />
-        <DashboardCard title="Product Types" description="Manage product types" link="/admin/product-types" />
-        <DashboardCard title="Business Goals" description="Manage business goals" link="/admin/business-goals" />
-        <DashboardCard title="Machines" description="Manage machine types" link="/admin/machines" />
-      </div>
-    </div>
-  )
-}
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <ImageIcon className="h-5 w-5" />
+              Image Management
+            </CardTitle>
+            <CardDescription>Upload and manage images for your website</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground">
+              Upload images to use throughout your website. Copy image URLs to use in content.
+            </p>
+          </CardContent>
+          <CardFooter>
+            <Button asChild className="w-full">
+              <Link href="/admin/images">Manage Images</Link>
+            </Button>
+          </CardFooter>
+        </Card>
 
-function DashboardCard({ title, description, link }: { title: string; description: string; link: string }) {
-  return (
-    <div className="border rounded-lg p-6 hover:shadow-md transition-shadow">
-      <h2 className="text-xl font-bold mb-2">{title}</h2>
-      <p className="text-muted-foreground mb-4">{description}</p>
-      <Link href={link} className="text-primary font-medium hover:underline">
-        Manage →
-      </Link>
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FileTextIcon className="h-5 w-5" />
+              Content Management
+            </CardTitle>
+            <CardDescription>Edit website content and text</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground">
+              Update text content across your website including headings, descriptions, and more.
+            </p>
+          </CardContent>
+          <CardFooter>
+            <Button asChild className="w-full">
+              <Link href="/admin/content">Manage Content</Link>
+            </Button>
+          </CardFooter>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <LayoutDashboardIcon className="h-5 w-5" />
+              View Website
+            </CardTitle>
+            <CardDescription>See your website with the latest changes</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground">
+              Preview your website to see how your content and image changes look.
+            </p>
+          </CardContent>
+          <CardFooter>
+            <Button asChild variant="outline" className="w-full">
+              <Link href="/">View Website</Link>
+            </Button>
+          </CardFooter>
+        </Card>
+      </div>
     </div>
   )
 }

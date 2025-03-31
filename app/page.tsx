@@ -1,6 +1,5 @@
 import Image from "next/image"
 import { ArrowRight } from "lucide-react"
-
 import { Button } from "@/components/ui/button"
 import { HeroSection } from "@/components/hero-section"
 import { ProductTypesPreview } from "@/components/product-types-preview"
@@ -35,6 +34,7 @@ export default function Home() {
                   Get a complete view of your entire vending operation in one intuitive interface.
                 </p>
               </div>
+              {/* Feature list with checkmarks */}
               <ul className="grid gap-4">
                 {[
                   "Real-time sales and inventory data across all machines",

@@ -1,17 +1,48 @@
-import Image from "next/image"
 import Link from "next/link"
+import Image from "next/image"
 import { ChevronRight } from "lucide-react"
-import { Button } from "@/components/ui/button"
 import { createServerSupabaseClient } from "@/lib/supabase"
 
-// Define the type for our business goal data
+// Define the type for our business goals data
 interface BusinessGoal {
   id: number
+  slug: string
   title: string
   description: string
   image_url: string
-  slug: string
 }
+
+// Default business goals in case the database is empty
+const defaultBusinessGoals: BusinessGoal[] = [
+  {
+    id: 1,
+    slug: "increase-revenue",
+    title: "Increase Revenue",
+    description: "Boost your vending machine revenue with smart pricing, promotions, and inventory optimization.",
+    image_url: "/placeholder.svg?height=300&width=400",
+  },
+  {
+    id: 2,
+    slug: "reduce-costs",
+    title: "Reduce Costs",
+    description: "Cut operational costs with route optimization, remote monitoring, and predictive maintenance.",
+    image_url: "/placeholder.svg?height=300&width=400",
+  },
+  {
+    id: 3,
+    slug: "improve-customer-experience",
+    title: "Improve Customer Experience",
+    description: "Enhance customer satisfaction with touchless payments, loyalty programs, and personalized offers.",
+    image_url: "/placeholder.svg?height=300&width=400",
+  },
+  {
+    id: 4,
+    slug: "expand-operations",
+    title: "Expand Operations",
+    description: "Scale your vending business with data-driven insights and automated inventory management.",
+    image_url: "/placeholder.svg?height=300&width=400",
+  },
+]
 
 // Fetch business goals from Supabase
 async function getBusinessGoals(): Promise<BusinessGoal[]> {
@@ -20,64 +51,26 @@ async function getBusinessGoals(): Promise<BusinessGoal[]> {
   try {
     const { data, error } = await supabase.from("business_goals").select("*").order("id", { ascending: true }).limit(4)
 
-    if (error || !data) {
-      console.log("Error fetching business goals or no data found")
-      return []
+    if (error || !data || data.length === 0) {
+      console.log("No business goals found, using default")
+      return defaultBusinessGoals
     }
 
-    return data.map((goal) => ({
-      id: goal.id,
-      title: goal.title,
-      description: goal.description,
-      image_url: goal.image_url || "/placeholder.svg?height=300&width=400",
-      slug: goal.slug,
+    return data.map((item) => ({
+      id: item.id,
+      slug: item.slug || `goal-${item.id}`,
+      title: item.title,
+      description: item.description,
+      image_url: item.image_url || "/placeholder.svg?height=300&width=400",
     }))
   } catch (error) {
     console.error("Error fetching business goals:", error)
-    return []
+    return defaultBusinessGoals
   }
 }
 
 export async function BusinessGoalsPreview() {
   const businessGoals = await getBusinessGoals()
-
-  // If no business goals are found, use default data
-  const displayGoals =
-    businessGoals.length > 0
-      ? businessGoals
-      : [
-          {
-            id: 1,
-            title: "Increase Revenue",
-            description:
-              "Boost your vending machine revenue with smart pricing, promotions, and inventory optimization.",
-            image_url: "/placeholder.svg?height=300&width=400",
-            slug: "increase-revenue",
-          },
-          {
-            id: 2,
-            title: "Reduce Costs",
-            description:
-              "Cut operational costs with route optimization, remote monitoring, and predictive maintenance.",
-            image_url: "/placeholder.svg?height=300&width=400",
-            slug: "reduce-costs",
-          },
-          {
-            id: 3,
-            title: "Improve Customer Experience",
-            description:
-              "Enhance customer satisfaction with touchless payments, loyalty programs, and personalized offers.",
-            image_url: "/placeholder.svg?height=300&width=400",
-            slug: "improve-customer-experience",
-          },
-          {
-            id: 4,
-            title: "Expand Operations",
-            description: "Scale your vending business with data-driven insights and automated inventory management.",
-            image_url: "/placeholder.svg?height=300&width=400",
-            slug: "expand-operations",
-          },
-        ]
 
   return (
     <section className="w-full py-12 md:py-24 lg:py-32 bg-muted/30">
@@ -90,10 +83,10 @@ export async function BusinessGoalsPreview() {
             </p>
           </div>
         </div>
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 py-8">
-          {displayGoals.map((goal) => (
-            <div key={goal.id} className="group relative overflow-hidden rounded-lg border bg-background">
-              <div className="aspect-video overflow-hidden">
+        <div className="grid grid-cols-1 gap-6 mt-8 sm:grid-cols-2 lg:grid-cols-4">
+          {businessGoals.map((goal) => (
+            <div key={goal.id} className="group relative overflow-hidden rounded-lg border bg-background p-2">
+              <div className="aspect-video overflow-hidden rounded-md">
                 <Image
                   src={goal.image_url || "/placeholder.svg"}
                   alt={goal.title}
@@ -102,9 +95,9 @@ export async function BusinessGoalsPreview() {
                   className="object-cover transition-transform group-hover:scale-105"
                 />
               </div>
-              <div className="p-6">
+              <div className="p-4">
                 <h3 className="text-xl font-bold">{goal.title}</h3>
-                <p className="mt-2 text-muted-foreground">{goal.description}</p>
+                <p className="mt-2 text-sm text-muted-foreground">{goal.description}</p>
                 <Link
                   href={`/business-goals/${goal.slug}`}
                   className="mt-4 inline-flex items-center text-sm font-medium text-primary"
@@ -116,9 +109,12 @@ export async function BusinessGoalsPreview() {
           ))}
         </div>
         <div className="flex justify-center mt-8">
-          <Button size="lg" asChild>
-            <Link href="/business-goals">View All Business Goals</Link>
-          </Button>
+          <Link
+            href="/business-goals"
+            className="inline-flex items-center justify-center rounded-md bg-[#2563EB] px-8 py-3 text-lg font-medium text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 w-[400px] max-w-full"
+          >
+            View All Business Goals
+          </Link>
         </div>
       </div>
     </section>

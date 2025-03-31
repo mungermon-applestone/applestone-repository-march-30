@@ -5,14 +5,13 @@ import Link from "next/link"
 import { Cloud } from "lucide-react"
 
 import { ThemeProvider } from "@/components/theme-provider"
-import { Button } from "@/components/ui/button"
 
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata = {
   title: "AppleStone Solutions - Vending Machine Software",
   description: "Unified software solutions for vending machines from all manufacturers",
-    generator: 'v0.dev'
+  generator: "v0.dev",
 }
 
 export default function RootLayout({
@@ -35,7 +34,7 @@ export default function RootLayout({
                   </Link>
                 </div>
                 <nav className="hidden md:flex gap-6">
-                  <Link href="/products" className="text-sm font-medium hover:text-primary">
+                  <Link href="/products-new" className="text-sm font-medium hover:text-primary">
                     Products
                   </Link>
                   <Link href="/business-goals" className="text-sm font-medium hover:text-primary">
@@ -55,25 +54,26 @@ export default function RootLayout({
                   </Link>
                 </nav>
                 <div className="flex items-center gap-4">
-                  <div className="hidden md:flex text-xs gap-4">
-                    <Link href="/partner" className="hover:text-primary">
+                  <div className="hidden md:flex text-sm gap-6">
+                    <Link href="/partner" className="hover:text-primary font-medium">
                       Partner Sign-in
                     </Link>
-                    <Link href="/customer" className="hover:text-primary">
+                    <Link href="/customer" className="hover:text-primary font-medium">
                       Customer Sign-in
                     </Link>
                   </div>
-                  <Button asChild>
-                    <Link href="/request-demo">Request Demo</Link>
-                  </Button>
+                  <Link
+                    href="/request-demo"
+                    className="inline-flex items-center justify-center rounded-md bg-[#2563EB] px-6 py-2 text-base font-medium text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                  >
+                    Request Demo
+                  </Link>
                 </div>
               </div>
             </header>
 
             {/* Main Content */}
-            <main className="flex-1">
-              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">{children}</div>
-            </main>
+            <main className="flex-1">{children}</main>
 
             {/* Footer */}
             <footer className="w-full border-t py-6 md:py-12">
@@ -91,16 +91,16 @@ export default function RootLayout({
                   <div className="grid gap-2">
                     <h3 className="text-lg font-semibold">Solutions</h3>
                     <nav className="flex flex-col gap-2">
-                      <Link href="/products/grocery" className="text-sm hover:underline">
+                      <Link href="/products-new/grocery" className="text-sm hover:underline">
                         Grocery
                       </Link>
-                      <Link href="/products/vape" className="text-sm hover:underline">
+                      <Link href="/products-new/vape" className="text-sm hover:underline">
                         Vape
                       </Link>
-                      <Link href="/products/cannabis" className="text-sm hover:underline">
+                      <Link href="/products-new/cannabis" className="text-sm hover:underline">
                         Cannabis
                       </Link>
-                      <Link href="/products/fresh-food" className="text-sm hover:underline">
+                      <Link href="/products-new/fresh-food" className="text-sm hover:underline">
                         Fresh Food
                       </Link>
                     </nav>
