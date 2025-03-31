@@ -1,5 +1,6 @@
 import type React from "react"
 import Link from "next/link"
+import { Button } from "@/components/ui/button"
 
 export default function AdminLayout({
   children,
@@ -7,28 +8,45 @@ export default function AdminLayout({
   children: React.ReactNode
 }) {
   return (
-    <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-14 items-center">
-          <div className="mr-4 flex">
-            <Link href="/admin" className="mr-6 flex items-center space-x-2">
-              <span className="font-bold">AppleStone Admin</span>
+    <div className="flex min-h-screen">
+      {/* Sidebar */}
+      <div className="w-64 bg-gray-100 border-r">
+        <div className="p-4">
+          <h2 className="text-xl font-bold mb-6">Admin Panel</h2>
+          <nav className="space-y-1">
+            <Link href="/admin" className="block p-2 hover:bg-gray-200 rounded">
+              Dashboard
             </Link>
-            <nav className="flex items-center space-x-4 lg:space-x-6">
-              <Link href="/admin/images" className="text-sm font-medium transition-colors hover:text-primary">
-                Images
-              </Link>
-              <Link href="/admin/content" className="text-sm font-medium transition-colors hover:text-primary">
-                Content
-              </Link>
-              <Link href="/" className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary">
-                View Site
-              </Link>
-            </nav>
-          </div>
+            <p className="text-sm font-medium text-gray-500 mt-4 mb-2">Content</p>
+            <Link href="/admin/hero" className="block p-2 hover:bg-gray-200 rounded">
+              Hero Section
+            </Link>
+            <Link href="/admin/business-goals" className="block p-2 hover:bg-gray-200 rounded">
+              Business Goals
+            </Link>
+            <Link href="/admin/machines" className="block p-2 hover:bg-gray-200 rounded">
+              Machines
+            </Link>
+            <Link href="/admin/product-types" className="block p-2 hover:bg-gray-200 rounded">
+              Product Types
+            </Link>
+            <Link href="/admin/updates" className="block p-2 hover:bg-gray-200 rounded">
+              Updates & News
+            </Link>
+          </nav>
         </div>
-      </header>
-      <main className="flex-1">{children}</main>
+      </div>
+
+      {/* Main content */}
+      <div className="flex-1 overflow-auto">
+        <header className="bg-white border-b p-4 flex justify-between items-center">
+          <h1 className="text-lg font-medium">Content Management</h1>
+          <Button variant="outline" asChild>
+            <Link href="/">View Site</Link>
+          </Button>
+        </header>
+        <main>{children}</main>
+      </div>
     </div>
   )
 }

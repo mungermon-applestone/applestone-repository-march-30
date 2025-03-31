@@ -10,6 +10,7 @@ interface ProductType {
   title: string
   description: string
   image_url: string
+  features?: string[]
 }
 
 // Default product types in case the database is empty
@@ -62,6 +63,7 @@ async function getProductTypes(): Promise<ProductType[]> {
       title: item.title,
       description: item.description,
       image_url: item.image_url || "/placeholder.svg?height=300&width=400",
+      features: item.features || [],
     }))
   } catch (error) {
     console.error("Error fetching product types:", error)

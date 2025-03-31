@@ -10,6 +10,7 @@ interface BusinessGoal {
   title: string
   description: string
   image_url: string
+  benefits?: string[]
 }
 
 // Default business goals in case the database is empty
@@ -62,6 +63,7 @@ async function getBusinessGoals(): Promise<BusinessGoal[]> {
       title: item.title,
       description: item.description,
       image_url: item.image_url || "/placeholder.svg?height=300&width=400",
+      benefits: item.benefits || [],
     }))
   } catch (error) {
     console.error("Error fetching business goals:", error)

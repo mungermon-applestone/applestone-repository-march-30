@@ -1,15 +1,18 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { createServerSupabaseClient } from "@/lib/supabase"
+import { formatDate } from "@/lib/content-utils"
 
 // Define the type for our updates data
 interface Update {
   id: number
   title: string
   excerpt: string
+  content?: string
   date: string
   category: string
   slug: string
+  image_url?: string
 }
 
 // Default updates in case the database is empty
@@ -85,23 +88,16 @@ async function getUpdates(): Promise<Update[]> {
       id: item.id,
       title: item.title,
       excerpt: item.excerpt,
+      content: item.content,
       date: item.date,
       category: item.category,
       slug: item.slug || `update-${item.id}`,
+      image_url: item.image_url,
     }))
   } catch (error) {
     console.error("Error fetching updates:", error)
     return defaultUpdates
   }
-}
-
-// Format date function
-function formatDate(dateString: string): string {
-  return new Date(dateString).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  })
 }
 
 export default async function UpdatesPage() {

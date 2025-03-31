@@ -4,6 +4,7 @@ import { createServerSupabaseClient } from "@/lib/supabase"
 
 // Define the type for our hero data
 interface HeroData {
+  id?: number
   title: string
   description: string
   image_url: string
@@ -39,6 +40,7 @@ async function getHeroData(): Promise<HeroData> {
     }
 
     return {
+      id: data.id,
       title: data.title || defaultHero.title,
       description: data.description || defaultHero.description,
       image_url: data.image_url || defaultHero.image_url,
