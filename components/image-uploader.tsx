@@ -6,7 +6,8 @@ import { useState, useRef } from "react"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { uploadImage, type UploadResult } from "@/lib/image-upload"
-import { Loader2, Upload, X } from "lucide-react"
+import { Loader2, Upload, X, AlertCircle } from "lucide-react"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 
 interface ImageUploaderProps {
   onImageUploaded: (result: UploadResult) => void
@@ -56,13 +57,15 @@ export function ImageUploader({
       const result = await uploadImage(file, bucket, folder)
 
       if (result.error) {
-        setError(result.error)
+        setError(`Upload failed: ${result.error}`)
+        console.error("Upload error:", result.error)
       } else {
         onImageUploaded(result)
       }
     } catch (err) {
-      setError("Failed to upload image")
-      console.error(err)
+      const errorMessage = err instanceof Error ? err.message : "Failed to upload image"
+      setError(errorMessage)
+      console.error("Upload exception:", err)
     } finally {
       setIsUploading(false)
     }
@@ -70,8 +73,16 @@ export function ImageUploader({
 
   const clearImage = () => {
     setPreviewUrl(null)
+    setError(null)
     if (fileInputRef.current) {
       fileInputRef.current.value = ""
+    }
+  }
+
+  const retryUpload = () => {
+    setError(null)
+    if (fileInputRef.current) {
+      fileInputRef.current.click()
     }
   }
 
@@ -96,7 +107,10 @@ export function ImageUploader({
           </button>
         </div>
       ) : (
-        <div className="border-2 border-dashed border-gray-300 rounded-md p-8 text-center w-full max-w-xs">
+        <div
+          className="border-2 border-dashed border-gray-300 rounded-md p-8 text-center w-full max-w-xs cursor-pointer"
+          onClick={() => fileInputRef.current?.click()}
+        >
           <Upload className="mx-auto h-12 w-12 text-gray-400" />
           <p className="mt-2 text-sm text-gray-500">Click to upload an image</p>
         </div>
@@ -111,18 +125,31 @@ export function ImageUploader({
         id="image-upload"
       />
 
-      <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()} disabled={isUploading}>
-        {isUploading ? (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Uploading...
-          </>
-        ) : (
-          <>{previewUrl ? "Change Image" : "Upload Image"}</>
-        )}
-      </Button>
+      {error && (
+        <Alert variant="destructive" className="w-full max-w-xs">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription className="text-xs">{error}</AlertDescription>
+        </Alert>
+      )}
 
-      {error && <p className="text-sm text-red-500">{error}</p>}
+      <div className="flex gap-2">
+        <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()} disabled={isUploading}>
+          {isUploading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Uploading...
+            </>
+          ) : (
+            <>{previewUrl ? "Change Image" : "Upload Image"}</>
+          )}
+        </Button>
+
+        {error && (
+          <Button type="button" variant="secondary" onClick={retryUpload}>
+            Retry
+          </Button>
+        )}
+      </div>
     </div>
   )
 }

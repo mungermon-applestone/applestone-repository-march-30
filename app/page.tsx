@@ -5,8 +5,12 @@ import { HeroSection } from "@/components/hero-section"
 import { ProductTypesPreview } from "@/components/product-types-preview"
 import { BusinessGoalsPreview } from "@/components/business-goals-preview"
 import { MachinesPreview } from "@/components/machines-preview"
+import { unstable_noStore as noStore } from "next/cache"
 
 export default function Home() {
+  // Disable caching for this page
+  noStore()
+
   return (
     <>
       {/* Hero Section */}

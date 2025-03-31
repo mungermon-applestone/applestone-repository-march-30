@@ -33,6 +33,13 @@ export default function AdminLayout({
             <Link href="/admin/updates" className="block p-2 hover:bg-gray-200 rounded">
               Updates & News
             </Link>
+            <p className="text-sm font-medium text-gray-500 mt-4 mb-2">Media</p>
+            <Link href="/admin/media" className="block p-2 hover:bg-gray-200 rounded">
+              Media Library
+            </Link>
+            <Link href="/admin/images" className="block p-2 hover:bg-gray-200 rounded">
+              Image Upload
+            </Link>
           </nav>
         </div>
       </div>

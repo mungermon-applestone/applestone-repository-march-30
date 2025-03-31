@@ -1,6 +1,7 @@
 import Image from "next/image"
 import { ArrowRight } from "lucide-react"
 import { createServerSupabaseClient } from "@/lib/supabase"
+import { unstable_noStore as noStore } from "next/cache"
 
 // Define the type for our hero data
 interface HeroData {
@@ -24,6 +25,9 @@ const defaultHero: HeroData = {
 
 // Fetch hero data from Supabase
 async function getHeroData(): Promise<HeroData> {
+  // Disable caching for this component
+  noStore()
+
   const supabase = createServerSupabaseClient()
 
   try {
