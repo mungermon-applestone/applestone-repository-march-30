@@ -1,4 +1,5 @@
-import { createServerSupabaseClient } from "@/lib/supabase"
+import { fetchData } from "@/lib/supabase-client"
+import type { PageHeader as PageHeaderType } from "@/types/database"
 import { unstable_noStore as noStore } from "next/cache"
 
 interface PageHeaderProps {
@@ -8,33 +9,14 @@ interface PageHeaderProps {
   className?: string
 }
 
-interface PageHeaderData {
-  id?: number
-  page_key: string
-  title: string
-  description?: string
-  image_url?: string
-}
-
-async function getPageHeader(pageKey: string): Promise<PageHeaderData | null> {
+async function getPageHeader(pageKey: string): Promise<PageHeaderType | null> {
   // Disable caching for this component
   noStore()
 
-  const supabase = createServerSupabaseClient()
-
-  try {
-    const { data, error } = await supabase.from("page_headers").select("*").eq("page_key", pageKey).single()
-
-    if (error) {
-      console.error(`Error fetching page header for ${pageKey}:`, error)
-      return null
-    }
-
-    return data
-  } catch (error) {
-    console.error(`Error in getPageHeader for ${pageKey}:`, error)
-    return null
-  }
+  return await fetchData<PageHeaderType>("page_headers", {
+    eq: { column: "page_key", value: pageKey },
+    single: true,
+  })
 }
 
 export async function PageHeader({

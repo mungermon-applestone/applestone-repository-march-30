@@ -5,6 +5,7 @@ import Image from "next/image"
 import { Input } from "@/components/ui/input"
 import { listFiles } from "@/lib/image-upload"
 import { Loader2, Search, FolderOpen } from "lucide-react"
+import type { StorageFile } from "@/types/database"
 
 interface MediaLibrarySelectorProps {
   onSelect: (url: string) => void
@@ -13,7 +14,7 @@ interface MediaLibrarySelectorProps {
 }
 
 export function MediaLibrarySelector({ onSelect, bucket = "images", initialFolder = "" }: MediaLibrarySelectorProps) {
-  const [files, setFiles] = useState<any[]>([])
+  const [files, setFiles] = useState<StorageFile[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [currentFolder, setCurrentFolder] = useState(initialFolder)
   const [searchTerm, setSearchTerm] = useState("")
@@ -123,7 +124,7 @@ export function MediaLibrarySelector({ onSelect, bucket = "images", initialFolde
             <div
               key={`file-${index}`}
               className="border rounded-md overflow-hidden cursor-pointer hover:border-primary"
-              onClick={() => onSelect(file.url)}
+              onClick={() => onSelect(file.url || "")}
             >
               <div className="aspect-square relative">
                 <Image src={file.url || "/placeholder.svg"} alt={file.name} fill className="object-cover" />

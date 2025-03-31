@@ -1,20 +1,12 @@
 import Image from "next/image"
 import { ArrowRight } from "lucide-react"
-import { createServerSupabaseClient } from "@/lib/supabase"
+import { fetchData } from "@/lib/supabase-client"
+import type { HeroSection as HeroSectionType } from "@/types/database"
 import { unstable_noStore as noStore } from "next/cache"
 
-// Define the type for our hero data
-interface HeroData {
-  id?: number
-  title: string
-  description: string
-  image_url: string
-  button_text: string
-  button_link: string
-}
-
 // Default hero data in case the database is empty
-const defaultHero: HeroData = {
+const defaultHero: HeroSectionType = {
+  id: 0,
   title: "Vend Anything You Sell",
   description:
     "Our cloud-based platform integrates with vending machines from all major manufacturers, giving you complete control of your fleet.",
@@ -24,36 +16,24 @@ const defaultHero: HeroData = {
 }
 
 // Fetch hero data from Supabase
-async function getHeroData(): Promise<HeroData> {
+async function getHeroData(): Promise<HeroSectionType> {
   // Disable caching for this component
   noStore()
 
-  const supabase = createServerSupabaseClient()
+  const data = await fetchData<HeroSectionType>("hero_section", {
+    order: { column: "id", ascending: true },
+    limit: 1,
+    single: true,
+  })
 
-  try {
-    const { data, error } = await supabase
-      .from("hero_section")
-      .select("*")
-      .order("id", { ascending: true })
-      .limit(1)
-      .single()
-
-    if (error || !data) {
-      console.log("No hero data found, using default")
-      return defaultHero
-    }
-
-    return {
-      id: data.id,
-      title: data.title || defaultHero.title,
-      description: data.description || defaultHero.description,
-      image_url: data.image_url || defaultHero.image_url,
-      button_text: data.button_text || defaultHero.button_text,
-      button_link: data.button_link || defaultHero.button_link,
-    }
-  } catch (error) {
-    console.error("Error fetching hero data:", error)
+  if (!data) {
+    console.log("No hero data found, using default")
     return defaultHero
+  }
+
+  return {
+    ...defaultHero,
+    ...data,
   }
 }
 

@@ -1,45 +1,24 @@
-import { createServerSupabaseClient } from "@/lib/supabase"
+import { fetchData } from "@/lib/supabase-client"
 
 /**
  * Generic function to fetch all records from a table
  */
 export async function fetchAllRecords<T>(tableName: string, orderBy = "id"): Promise<T[]> {
-  const supabase = createServerSupabaseClient()
+  const data = await fetchData<T[]>(tableName as any, {
+    order: { column: orderBy, ascending: true },
+  })
 
-  try {
-    const { data, error } = await supabase.from(tableName).select("*").order(orderBy, { ascending: true })
-
-    if (error) {
-      console.error(`Error fetching ${tableName}:`, error)
-      return []
-    }
-
-    return data as T[]
-  } catch (error) {
-    console.error(`Error in fetchAllRecords for ${tableName}:`, error)
-    return []
-  }
+  return data || []
 }
 
 /**
  * Generic function to fetch a single record by ID
  */
 export async function fetchRecordById<T>(tableName: string, id: number): Promise<T | null> {
-  const supabase = createServerSupabaseClient()
-
-  try {
-    const { data, error } = await supabase.from(tableName).select("*").eq("id", id).single()
-
-    if (error) {
-      console.error(`Error fetching ${tableName} with id ${id}:`, error)
-      return null
-    }
-
-    return data as T
-  } catch (error) {
-    console.error(`Error in fetchRecordById for ${tableName}:`, error)
-    return null
-  }
+  return await fetchData<T>(tableName as any, {
+    eq: { column: "id", value: id },
+    single: true,
+  })
 }
 
 /**

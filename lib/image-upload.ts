@@ -1,6 +1,7 @@
 "use client"
 
-import { createClientSupabaseClient } from "@/lib/supabase"
+import { createBrowserClient } from "@/lib/supabase-client"
+import type { StorageFile } from "@/types/database"
 
 export type UploadResult = {
   path: string
@@ -17,7 +18,7 @@ export type UploadResult = {
  */
 export async function uploadImage(file: File, bucket = "images", folder = ""): Promise<UploadResult> {
   try {
-    const supabase = createClientSupabaseClient()
+    const supabase = createBrowserClient()
 
     // Create a unique filename to avoid collisions
     const fileExt = file.name.split(".").pop()
@@ -64,9 +65,9 @@ export async function uploadImage(file: File, bucket = "images", folder = ""): P
  * @param folder Optional folder path within the bucket
  * @returns Array of file objects with URLs
  */
-export async function listFiles(bucket = "images", folder = ""): Promise<any[]> {
+export async function listFiles(bucket = "images", folder = ""): Promise<StorageFile[]> {
   try {
-    const supabase = createClientSupabaseClient()
+    const supabase = createBrowserClient()
 
     const { data, error } = await supabase.storage.from(bucket).list(folder, {
       sortBy: { column: "name", order: "asc" },
@@ -87,7 +88,7 @@ export async function listFiles(bucket = "images", folder = ""): Promise<any[]> 
           ...file,
           url: data.publicUrl,
           path,
-        }
+        } as StorageFile
       }),
     )
 
@@ -106,7 +107,7 @@ export async function listFiles(bucket = "images", folder = ""): Promise<any[]> 
  */
 export async function deleteImage(path: string, bucket = "images"): Promise<boolean> {
   try {
-    const supabase = createClientSupabaseClient()
+    const supabase = createBrowserClient()
 
     const { error } = await supabase.storage.from(bucket).remove([path])
 
@@ -131,7 +132,7 @@ export async function deleteImage(path: string, bucket = "images"): Promise<bool
  */
 export async function createFolder(folderName: string, parentFolder = "", bucket = "images"): Promise<boolean> {
   try {
-    const supabase = createClientSupabaseClient()
+    const supabase = createBrowserClient()
 
     const folderPath = parentFolder ? `${parentFolder}/${folderName}/.placeholder` : `${folderName}/.placeholder`
 

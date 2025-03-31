@@ -1,17 +1,8 @@
 import Link from "next/link"
 import Image from "next/image"
 import { ChevronRight } from "lucide-react"
-import { createServerSupabaseClient } from "@/lib/supabase"
-
-// Define the type for our business goals data
-interface BusinessGoal {
-  id: number
-  slug: string
-  title: string
-  description: string
-  image_url: string
-  benefits?: string[]
-}
+import { fetchData } from "@/lib/supabase-client"
+import type { BusinessGoal } from "@/types/database"
 
 // Default business goals in case the database is empty
 const defaultBusinessGoals: BusinessGoal[] = [
@@ -21,6 +12,7 @@ const defaultBusinessGoals: BusinessGoal[] = [
     title: "Increase Revenue",
     description: "Boost your vending machine revenue with smart pricing, promotions, and inventory optimization.",
     image_url: "/placeholder.svg?height=300&width=400",
+    benefits: ["Smart Pricing", "Targeted Promotions", "Inventory Optimization"],
   },
   {
     id: 2,
@@ -28,6 +20,7 @@ const defaultBusinessGoals: BusinessGoal[] = [
     title: "Reduce Costs",
     description: "Cut operational costs with route optimization, remote monitoring, and predictive maintenance.",
     image_url: "/placeholder.svg?height=300&width=400",
+    benefits: ["Route Optimization", "Remote Monitoring", "Predictive Maintenance"],
   },
   {
     id: 3,
@@ -35,6 +28,7 @@ const defaultBusinessGoals: BusinessGoal[] = [
     title: "Improve Customer Experience",
     description: "Enhance customer satisfaction with touchless payments, loyalty programs, and personalized offers.",
     image_url: "/placeholder.svg?height=300&width=400",
+    benefits: ["Touchless Payments", "Loyalty Programs", "Personalized Offers"],
   },
   {
     id: 4,
@@ -42,33 +36,28 @@ const defaultBusinessGoals: BusinessGoal[] = [
     title: "Expand Operations",
     description: "Scale your vending business with data-driven insights and automated inventory management.",
     image_url: "/placeholder.svg?height=300&width=400",
+    benefits: ["Data-Driven Insights", "Automated Inventory", "Scalable Infrastructure"],
   },
 ]
 
 // Fetch business goals from Supabase
 async function getBusinessGoals(): Promise<BusinessGoal[]> {
-  const supabase = createServerSupabaseClient()
+  const data = await fetchData<BusinessGoal[]>("business_goals", {
+    order: { column: "id", ascending: true },
+    limit: 4,
+  })
 
-  try {
-    const { data, error } = await supabase.from("business_goals").select("*").order("id", { ascending: true }).limit(4)
-
-    if (error || !data || data.length === 0) {
-      console.log("No business goals found, using default")
-      return defaultBusinessGoals
-    }
-
-    return data.map((item) => ({
-      id: item.id,
-      slug: item.slug || `goal-${item.id}`,
-      title: item.title,
-      description: item.description,
-      image_url: item.image_url || "/placeholder.svg?height=300&width=400",
-      benefits: item.benefits || [],
-    }))
-  } catch (error) {
-    console.error("Error fetching business goals:", error)
+  if (!data || data.length === 0) {
+    console.log("No business goals found, using default")
     return defaultBusinessGoals
   }
+
+  return data.map((item) => ({
+    ...item,
+    slug: item.slug || `goal-${item.id}`,
+    image_url: item.image_url || "/placeholder.svg?height=300&width=400",
+    benefits: item.benefits || [],
+  }))
 }
 
 export async function BusinessGoalsPreview() {

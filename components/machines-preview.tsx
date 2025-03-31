@@ -2,19 +2,8 @@ import Link from "next/link"
 import Image from "next/image"
 import { ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { createServerSupabaseClient } from "@/lib/supabase"
-
-// Define the type for our machine data
-interface Machine {
-  id: number
-  name: string
-  description: string
-  image_url: string
-  features?: string[]
-  category?: string
-  status?: string
-  location?: string
-}
+import { fetchData } from "@/lib/supabase-client"
+import type { Machine } from "@/types/database"
 
 // Default machines in case the database is empty
 const defaultMachines: Machine[] = [
@@ -62,30 +51,24 @@ const defaultMachines: Machine[] = [
 
 // Fetch machines from Supabase
 async function getMachines(): Promise<Machine[]> {
-  const supabase = createServerSupabaseClient()
+  const data = await fetchData<Machine[]>("machines", {
+    order: { column: "id", ascending: true },
+    limit: 4,
+  })
 
-  try {
-    const { data, error } = await supabase.from("machines").select("*").order("id", { ascending: true }).limit(4)
-
-    if (error || !data || data.length === 0) {
-      console.log("No machines found, using default")
-      return defaultMachines
-    }
-
-    return data.map((item) => ({
-      id: item.id,
-      name: item.name,
-      description: item.description,
-      image_url: item.image_url || "/placeholder.svg?height=300&width=400",
-      features: item.features || [],
-      category: item.category,
-      status: item.status,
-      location: item.location,
-    }))
-  } catch (error) {
-    console.error("Error fetching machines:", error)
+  if (!data || data.length === 0) {
+    console.log("No machines found, using default")
     return defaultMachines
   }
+
+  return data.map((item) => ({
+    ...item,
+    image_url: item.image_url || "/placeholder.svg?height=300&width=400",
+    features: item.features || [],
+    category: item.category || "vending-machine",
+    status: item.status || "Active",
+    location: item.location || "Main Office",
+  }))
 }
 
 export async function MachinesPreview() {

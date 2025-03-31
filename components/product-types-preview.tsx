@@ -1,17 +1,8 @@
 import Link from "next/link"
 import Image from "next/image"
 import { ChevronRight } from "lucide-react"
-import { createServerSupabaseClient } from "@/lib/supabase"
-
-// Define the type for our product type data
-interface ProductType {
-  id: number
-  slug: string
-  title: string
-  description: string
-  image_url: string
-  features?: string[]
-}
+import { fetchData } from "@/lib/supabase-client"
+import type { ProductType } from "@/types/database"
 
 // Default product types in case the database is empty
 const defaultProductTypes: ProductType[] = [
@@ -21,6 +12,7 @@ const defaultProductTypes: ProductType[] = [
     title: "Grocery",
     description: "Sell grocery items through automated retail with inventory management and freshness tracking.",
     image_url: "/placeholder.svg?height=300&width=400",
+    features: ["Freshness Tracking", "Inventory Management", "Temperature Control"],
   },
   {
     id: 2,
@@ -28,6 +20,7 @@ const defaultProductTypes: ProductType[] = [
     title: "Vape",
     description: "Age verification and compliance features for vape product sales through automated retail.",
     image_url: "/placeholder.svg?height=300&width=400",
+    features: ["Age Verification", "Compliance Tracking", "Inventory Management"],
   },
   {
     id: 3,
@@ -35,6 +28,7 @@ const defaultProductTypes: ProductType[] = [
     title: "Cannabis",
     description: "Secure, compliant cannabis sales with age verification and inventory tracking.",
     image_url: "/placeholder.svg?height=300&width=400",
+    features: ["Age Verification", "Compliance Tracking", "Secure Storage"],
   },
   {
     id: 4,
@@ -42,33 +36,28 @@ const defaultProductTypes: ProductType[] = [
     title: "Fresh Food",
     description: "Temperature monitoring and freshness tracking for perishable food items.",
     image_url: "/placeholder.svg?height=300&width=400",
+    features: ["Temperature Control", "Freshness Tracking", "Inventory Management"],
   },
 ]
 
 // Fetch product types from Supabase
 async function getProductTypes(): Promise<ProductType[]> {
-  const supabase = createServerSupabaseClient()
+  const data = await fetchData<ProductType[]>("product_types", {
+    order: { column: "id", ascending: true },
+    limit: 4,
+  })
 
-  try {
-    const { data, error } = await supabase.from("product_types").select("*").order("id", { ascending: true }).limit(4)
-
-    if (error || !data || data.length === 0) {
-      console.log("No product types found, using default")
-      return defaultProductTypes
-    }
-
-    return data.map((item) => ({
-      id: item.id,
-      slug: item.slug || `product-${item.id}`,
-      title: item.title,
-      description: item.description,
-      image_url: item.image_url || "/placeholder.svg?height=300&width=400",
-      features: item.features || [],
-    }))
-  } catch (error) {
-    console.error("Error fetching product types:", error)
+  if (!data || data.length === 0) {
+    console.log("No product types found, using default")
     return defaultProductTypes
   }
+
+  return data.map((item) => ({
+    ...item,
+    slug: item.slug || `product-${item.id}`,
+    image_url: item.image_url || "/placeholder.svg?height=300&width=400",
+    features: item.features || [],
+  }))
 }
 
 export async function ProductTypesPreview() {
