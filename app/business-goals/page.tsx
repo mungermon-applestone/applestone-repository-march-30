@@ -3,6 +3,8 @@ import Image from "next/image"
 import { ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { createServerSupabaseClient } from "@/lib/supabase"
+import { PageHeader } from "@/components/page-header"
+import { unstable_noStore as noStore } from "next/cache"
 
 // Define the type for our business goals data
 interface BusinessGoal {
@@ -52,6 +54,9 @@ const defaultBusinessGoals: BusinessGoal[] = [
 
 // Fetch business goals from Supabase
 async function getBusinessGoals(): Promise<BusinessGoal[]> {
+  // Disable caching
+  noStore()
+
   const supabase = createServerSupabaseClient()
 
   try {
@@ -82,20 +87,11 @@ export default async function BusinessGoalsPage() {
   return (
     <>
       {/* Hero Section */}
-      <section className="w-full py-12 md:py-24 lg:py-32 bg-muted/50">
-        <div className="container px-4 md:px-6">
-          <div className="flex flex-col items-center justify-center space-y-4 text-center">
-            <div className="space-y-2">
-              <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none">
-                Achieve Your Business Goals
-              </h1>
-              <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                Our vending machine software helps you achieve your business goals with powerful features and insights.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
+      <PageHeader
+        pageKey="business-goals"
+        defaultTitle="Achieve Your Business Goals"
+        defaultDescription="Our vending machine software helps you achieve your business goals with powerful features and insights."
+      />
 
       {/* Business Goals Grid */}
       <section className="w-full py-12 md:py-24">

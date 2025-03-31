@@ -21,6 +21,9 @@ export default function AdminLayout({
             <Link href="/admin/hero" className="block p-2 hover:bg-gray-200 rounded">
               Hero Section
             </Link>
+            <Link href="/admin/page-headers" className="block p-2 hover:bg-gray-200 rounded">
+              Page Headers
+            </Link>
             <Link href="/admin/business-goals" className="block p-2 hover:bg-gray-200 rounded">
               Business Goals
             </Link>

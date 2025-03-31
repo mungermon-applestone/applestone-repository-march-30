@@ -1,14 +1,14 @@
 import Link from "next/link"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Target, Package, ShoppingBag, FileText, Upload, Home, FolderOpen } from "lucide-react"
+import { Target, Package, ShoppingBag, FileText, Upload, Home, FolderOpen, Layout } from "lucide-react"
 import { createServerSupabaseClient } from "@/lib/supabase"
 
 // Function to get counts from database tables
 async function getContentCounts() {
   const supabase = createServerSupabaseClient()
 
-  const tables = ["hero_section", "business_goals", "machines", "product_types", "updates"]
+  const tables = ["hero_section", "page_headers", "business_goals", "machines", "product_types", "updates"]
 
   const counts: Record<string, number> = {}
 
@@ -56,6 +56,13 @@ export default async function AdminDashboard() {
       icon: <Home className="h-6 w-6" />,
       link: "/admin/hero",
       count: counts["hero_section"],
+    },
+    {
+      title: "Page Headers",
+      description: "Edit headers for all site pages",
+      icon: <Layout className="h-6 w-6" />,
+      link: "/admin/page-headers",
+      count: counts["page_headers"],
     },
     {
       title: "Business Goals",
