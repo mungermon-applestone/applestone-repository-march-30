@@ -1,8 +1,7 @@
 import Image from "next/image"
 import { ArrowRight } from "lucide-react"
-import { fetchData } from "@/lib/supabase-client"
 import type { HeroSection as HeroSectionType } from "@/types/database"
-import { unstable_noStore as noStore } from "next/cache"
+import { fetchCachedData, CACHE_TIMES } from "@/lib/data-fetching"
 
 // Default hero data in case the database is empty
 const defaultHero: HeroSectionType = {
@@ -17,13 +16,12 @@ const defaultHero: HeroSectionType = {
 
 // Fetch hero data from Supabase
 async function getHeroData(): Promise<HeroSectionType> {
-  // Disable caching for this component
-  noStore()
-
-  const data = await fetchData<HeroSectionType>("hero_section", {
+  // Use cached data fetching with medium revalidation
+  const data = await fetchCachedData<HeroSectionType>("hero_section", {
     order: { column: "id", ascending: true },
     limit: 1,
     single: true,
+    revalidate: CACHE_TIMES.MEDIUM, // Revalidate every 5 minutes
   })
 
   if (!data) {

@@ -1,8 +1,8 @@
 import Link from "next/link"
 import Image from "next/image"
 import { ChevronRight } from "lucide-react"
-import { fetchData } from "@/lib/supabase-client"
 import type { BusinessGoal } from "@/types/database"
+import { fetchCachedData, CACHE_TIMES } from "@/lib/data-fetching"
 
 // Default business goals in case the database is empty
 const defaultBusinessGoals: BusinessGoal[] = [
@@ -42,9 +42,10 @@ const defaultBusinessGoals: BusinessGoal[] = [
 
 // Fetch business goals from Supabase
 async function getBusinessGoals(): Promise<BusinessGoal[]> {
-  const data = await fetchData<BusinessGoal[]>("business_goals", {
+  const data = await fetchCachedData<BusinessGoal[]>("business_goals", {
     order: { column: "id", ascending: true },
     limit: 4,
+    revalidate: CACHE_TIMES.LONG, // Revalidate every hour
   })
 
   if (!data || data.length === 0) {

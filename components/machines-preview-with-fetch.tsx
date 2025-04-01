@@ -1,9 +1,13 @@
+"use client"
+
+import { useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { useFetchData } from "@/hooks/use-fetch-data"
+import { LoadingFallback } from "@/components/loading-fallback"
 import type { Machine } from "@/types/database"
-import { fetchCachedData, CACHE_TIMES } from "@/lib/data-fetching"
 
 // Default machines in case the database is empty
 const defaultMachines: Machine[] = [
@@ -49,35 +53,65 @@ const defaultMachines: Machine[] = [
   },
 ]
 
-// Fetch machines from Supabase
-async function getMachines(): Promise<Machine[]> {
-  const data = await fetchCachedData<Machine[]>("machines", {
-    order: { column: "id", ascending: true },
-    limit: 4,
-    revalidate: CACHE_TIMES.LONG, // Revalidate every hour
+export function MachinesPreviewWithFetch() {
+  const [showError, setShowError] = useState(true)
+  const {
+    data: machines,
+    isLoading,
+    error,
+    retry,
+  } = useFetchData<Machine[]>({
+    url: "/api/machines",
+    fallbackData: defaultMachines,
   })
 
-  if (!data || data.length === 0) {
-    console.log("No machines found, using default")
-    return defaultMachines
+  if (isLoading) {
+    return <LoadingFallback />
   }
-
-  return data.map((item) => ({
-    ...item,
-    image_url: item.image_url || "/placeholder.svg?height=300&width=400",
-    features: item.features || [],
-    category: item.category || "vending-machine",
-    status: item.status || "Active",
-    location: item.location || "Main Office",
-  }))
-}
-
-export async function MachinesPreview() {
-  const machines = await getMachines()
 
   return (
     <section className="w-full py-12 md:py-24 lg:py-32">
       <div className="container px-4 md:px-6">
+        {error && showError && (
+          <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
+            <div className="flex items-start">
+              <div className="flex-shrink-0">
+                <svg
+                  className="h-5 w-5 text-yellow-400"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </div>
+              <div className="ml-3 flex-1">
+                <p className="text-sm text-yellow-700">{error}</p>
+                <div className="mt-2 flex">
+                  <button
+                    type="button"
+                    onClick={() => retry()}
+                    className="mr-3 text-sm font-medium text-yellow-800 hover:text-yellow-900"
+                  >
+                    Retry
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowError(false)}
+                    className="text-sm font-medium text-yellow-800 hover:text-yellow-900"
+                  >
+                    Dismiss
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="flex flex-col items-center justify-center space-y-4 text-center">
           <div className="space-y-2">
             <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">Our Vending Machines</h2>
