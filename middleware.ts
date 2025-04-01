@@ -2,19 +2,17 @@ import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 
 export function middleware(request: NextRequest) {
-  // Check if the request is for the admin area (except login)
-  if (request.nextUrl.pathname.startsWith("/admin") && !request.nextUrl.pathname.startsWith("/admin/login")) {
-    // Check if the user is authenticated
-    const isAuthenticated = request.cookies.has("admin_authenticated")
-    console.log("Admin access attempt:", {
-      path: request.nextUrl.pathname,
-      isAuthenticated,
-    })
+  // Get the pathname
+  const path = request.nextUrl.pathname
 
-    if (!isAuthenticated) {
-      // Redirect to login page if not authenticated
-      const loginUrl = new URL("/admin/login", request.url)
-      return NextResponse.redirect(loginUrl)
+  // Check if the path starts with /admin
+  if (path.startsWith("/admin")) {
+    // Get the authentication cookie
+    const authCookie = request.cookies.get("admin-auth")
+
+    // If there's no auth cookie and the path is not /admin/login, redirect to login
+    if (!authCookie && path !== "/admin/login") {
+      return NextResponse.redirect(new URL("/admin/login", request.url))
     }
   }
 

@@ -60,6 +60,7 @@ export function createBrowserClient(): SupabaseClient {
  * Generic function to safely fetch data from Supabase
  * @param tableName The table to query
  * @param options Query options
+ * @param fetchOptions Options for Next.js fetch caching
  * @returns The fetched data or null if an error occurred
  */
 export async function fetchData<T>(
@@ -71,6 +72,7 @@ export async function fetchData<T>(
     limit?: number
     single?: boolean
   } = {},
+  fetchOptions?: { cache: "force-cache" | "no-store" } | { next: { revalidate: number } },
 ): Promise<T | null> {
   try {
     const supabase = createServerClient()
