@@ -2,11 +2,10 @@
 
 import type React from "react"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { ArrowLeft, Save } from "lucide-react"
 import Link from "next/link"
-import { createClientSupabaseClient } from "@/lib/supabase"
 
 interface Product {
   id: number
@@ -24,7 +23,7 @@ interface ProductType {
   slug: string
 }
 
-// Static product data for fallback
+// Static product data
 const staticProducts: Record<string, Product> = {
   "1": {
     id: 1,
@@ -46,7 +45,7 @@ const staticProducts: Record<string, Product> = {
   },
 }
 
-// Static product types for fallback
+// Static product types
 const staticProductTypes: ProductType[] = [
   { id: 1, name: "Vending Machines", slug: "vending-machines" },
   { id: 2, name: "Payment Systems", slug: "payment-systems" },
@@ -56,73 +55,30 @@ const staticProductTypes: ProductType[] = [
 export default function EditProductPage({ params }: { params: { id: string } }) {
   const router = useRouter()
   const isNew = params.id === "new"
-  const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [productTypes, setProductTypes] = useState<ProductType[]>([])
-  const [product, setProduct] = useState<Product>({
-    id: 0,
-    name: "",
-    description: "",
-    price: 0,
-    image_url: "/placeholder.svg?height=400&width=400",
-    product_type_id: 1,
-    features: [],
-  })
+  const [productTypes] = useState<ProductType[]>(staticProductTypes)
+  const [product, setProduct] = useState<Product>(
+    isNew
+      ? {
+          id: 0,
+          name: "",
+          description: "",
+          price: 0,
+          image_url: "/placeholder.svg?height=400&width=400",
+          product_type_id: 1,
+          features: [],
+        }
+      : staticProducts[params.id] || {
+          id: 0,
+          name: "",
+          description: "",
+          price: 0,
+          image_url: "/placeholder.svg?height=400&width=400",
+          product_type_id: 1,
+          features: [],
+        },
+  )
   const [featureInput, setFeatureInput] = useState("")
-
-  useEffect(() => {
-    async function fetchProductTypes() {
-      try {
-        const supabase = createClientSupabaseClient()
-        const { data, error } = await supabase.from("product_types").select("id, name, slug")
-
-        if (error) {
-          console.error("Error fetching product types:", error)
-          setProductTypes(staticProductTypes)
-        } else {
-          setProductTypes(data || staticProductTypes)
-        }
-      } catch (error) {
-        console.error("Error in fetchProductTypes:", error)
-        setProductTypes(staticProductTypes)
-      }
-    }
-
-    async function fetchProduct() {
-      if (isNew) {
-        setLoading(false)
-        return
-      }
-
-      try {
-        const supabase = createClientSupabaseClient()
-        const { data, error } = await supabase.from("products").select("*").eq("id", params.id).single()
-
-        if (error) {
-          console.error("Error fetching product:", error)
-          // Fall back to static data
-          const staticData = staticProducts[params.id]
-          if (staticData) {
-            setProduct(staticData)
-          }
-        } else if (data) {
-          setProduct(data)
-        }
-      } catch (error) {
-        console.error("Error in fetchProduct:", error)
-        // Fall back to static data
-        const staticData = staticProducts[params.id]
-        if (staticData) {
-          setProduct(staticData)
-        }
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchProductTypes()
-    fetchProduct()
-  }, [params.id, isNew])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target
@@ -157,67 +113,11 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
     e.preventDefault()
     setSaving(true)
 
-    try {
-      const supabase = createClientSupabaseClient()
-
-      if (isNew) {
-        // Create new product
-        const { data, error } = await supabase
-          .from("products")
-          .insert([
-            {
-              name: product.name,
-              description: product.description,
-              price: product.price,
-              image_url: product.image_url,
-              product_type_id: product.product_type_id,
-              features: product.features,
-            },
-          ])
-          .select()
-
-        if (error) {
-          console.error("Error creating product:", error)
-          alert("Failed to create product. Please try again.")
-        } else {
-          router.push("/admin/products")
-        }
-      } else {
-        // Update existing product
-        const { error } = await supabase
-          .from("products")
-          .update({
-            name: product.name,
-            description: product.description,
-            price: product.price,
-            image_url: product.image_url,
-            product_type_id: product.product_type_id,
-            features: product.features,
-          })
-          .eq("id", product.id)
-
-        if (error) {
-          console.error("Error updating product:", error)
-          alert("Failed to update product. Please try again.")
-        } else {
-          router.push("/admin/products")
-        }
-      }
-    } catch (error) {
-      console.error("Error in handleSubmit:", error)
-      alert("An unexpected error occurred. Please try again.")
-    } finally {
+    // Simulate API call
+    setTimeout(() => {
       setSaving(false)
-    }
-  }
-
-  if (loading) {
-    return (
-      <div className="p-8 text-center">
-        <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-gray-300 border-t-blue-600"></div>
-        <p className="mt-2 text-gray-500">Loading product...</p>
-      </div>
-    )
+      router.push("/admin/products")
+    }, 1000)
   }
 
   return (

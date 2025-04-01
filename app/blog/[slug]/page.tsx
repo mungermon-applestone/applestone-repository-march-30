@@ -2,7 +2,6 @@ import { Suspense } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
-import { createServerSupabaseClient } from "@/lib/supabase"
 
 interface BlogPost {
   id: number
@@ -14,7 +13,7 @@ interface BlogPost {
   date: string
 }
 
-// Static blog post data for fallback
+// Static blog post data
 const staticBlogPosts: Record<string, BlogPost> = {
   "future-of-automated-retail": {
     id: 1,
@@ -38,37 +37,8 @@ const staticBlogPosts: Record<string, BlogPost> = {
   },
 }
 
-async function getBlogPost(slug: string) {
-  try {
-    const supabase = createServerSupabaseClient()
-
-    // First try to fetch by slug
-    let { data, error } = await supabase.from("blog_posts").select("*").eq("slug", slug).single()
-
-    // If not found by slug and it's numeric, try by ID
-    if ((error || !data) && !isNaN(Number.parseInt(slug))) {
-      const result = await supabase.from("blog_posts").select("*").eq("id", Number.parseInt(slug)).single()
-
-      if (!result.error && result.data) {
-        data = result.data
-        error = null
-      }
-    }
-
-    if (error) {
-      console.error("Error fetching blog post:", error)
-      return staticBlogPosts[slug] || null
-    }
-
-    return data
-  } catch (error) {
-    console.error("Error in getBlogPost:", error)
-    return staticBlogPosts[slug] || null
-  }
-}
-
-export default async function BlogPostPage({ params }: { params: { slug: string } }) {
-  const post = await getBlogPost(params.slug)
+export default function BlogPostPage({ params }: { params: { slug: string } }) {
+  const post = staticBlogPosts[params.slug]
 
   if (!post) {
     return (

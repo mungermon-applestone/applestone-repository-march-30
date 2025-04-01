@@ -2,7 +2,6 @@ import { Suspense } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
-import { createServerSupabaseClient } from "@/lib/supabase"
 
 interface Product {
   id: number
@@ -14,7 +13,7 @@ interface Product {
   features: string[]
 }
 
-// Static product data for fallback
+// Static product data
 const staticProducts: Record<string, Product> = {
   "1": {
     id: 1,
@@ -36,26 +35,8 @@ const staticProducts: Record<string, Product> = {
   },
 }
 
-async function getProduct(id: string) {
-  try {
-    const supabase = createServerSupabaseClient()
-
-    const { data, error } = await supabase.from("products").select("*").eq("id", id).single()
-
-    if (error) {
-      console.error("Error fetching product:", error)
-      return staticProducts[id] || null
-    }
-
-    return data
-  } catch (error) {
-    console.error("Error in getProduct:", error)
-    return staticProducts[id] || null
-  }
-}
-
-export default async function ProductPage({ params }: { params: { id: string } }) {
-  const product = await getProduct(params.id)
+export default function ProductPage({ params }: { params: { id: string } }) {
+  const product = staticProducts[params.id]
 
   if (!product) {
     return (

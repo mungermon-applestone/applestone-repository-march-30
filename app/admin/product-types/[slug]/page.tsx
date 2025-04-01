@@ -2,11 +2,10 @@
 
 import type React from "react"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { ArrowLeft, Save } from "lucide-react"
 import Link from "next/link"
-import { createClientSupabaseClient } from "@/lib/supabase"
 
 interface ProductType {
   id: number
@@ -15,7 +14,7 @@ interface ProductType {
   description: string
 }
 
-// Static product type data for fallback
+// Static product type data
 const staticProductTypes: Record<string, ProductType> = {
   "vending-machines": {
     id: 1,
@@ -40,66 +39,22 @@ const staticProductTypes: Record<string, ProductType> = {
 export default function EditProductTypePage({ params }: { params: { slug: string } }) {
   const router = useRouter()
   const isNew = params.slug === "new"
-  const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [productType, setProductType] = useState<ProductType>({
-    id: 0,
-    name: "",
-    slug: "",
-    description: "",
-  })
-
-  useEffect(() => {
-    async function fetchProductType() {
-      if (isNew) {
-        setLoading(false)
-        return
-      }
-
-      try {
-        const supabase = createClientSupabaseClient()
-
-        // First try to fetch by slug
-        let { data, error } = await supabase.from("product_types").select("*").eq("slug", params.slug).single()
-
-        // If not found by slug and it's numeric, try by ID
-        if ((error || !data) && !isNaN(Number.parseInt(params.slug))) {
-          const result = await supabase
-            .from("product_types")
-            .select("*")
-            .eq("id", Number.parseInt(params.slug))
-            .single()
-
-          if (!result.error && result.data) {
-            data = result.data
-            error = null
-          }
+  const [productType, setProductType] = useState<ProductType>(
+    isNew
+      ? {
+          id: 0,
+          name: "",
+          slug: "",
+          description: "",
         }
-
-        if (error) {
-          console.error("Error fetching product type:", error)
-          // Fall back to static data
-          const staticData = staticProductTypes[params.slug]
-          if (staticData) {
-            setProductType(staticData)
-          }
-        } else if (data) {
-          setProductType(data)
-        }
-      } catch (error) {
-        console.error("Error in fetchProductType:", error)
-        // Fall back to static data
-        const staticData = staticProductTypes[params.slug]
-        if (staticData) {
-          setProductType(staticData)
-        }
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchProductType()
-  }, [params.slug, isNew])
+      : staticProductTypes[params.slug] || {
+          id: 0,
+          name: "",
+          slug: "",
+          description: "",
+        },
+  )
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -110,61 +65,11 @@ export default function EditProductTypePage({ params }: { params: { slug: string
     e.preventDefault()
     setSaving(true)
 
-    try {
-      const supabase = createClientSupabaseClient()
-
-      if (isNew) {
-        // Create new product type
-        const { data, error } = await supabase
-          .from("product_types")
-          .insert([
-            {
-              name: productType.name,
-              slug: productType.slug,
-              description: productType.description,
-            },
-          ])
-          .select()
-
-        if (error) {
-          console.error("Error creating product type:", error)
-          alert("Failed to create product type. Please try again.")
-        } else {
-          router.push("/admin/product-types")
-        }
-      } else {
-        // Update existing product type
-        const { error } = await supabase
-          .from("product_types")
-          .update({
-            name: productType.name,
-            slug: productType.slug,
-            description: productType.description,
-          })
-          .eq("id", productType.id)
-
-        if (error) {
-          console.error("Error updating product type:", error)
-          alert("Failed to update product type. Please try again.")
-        } else {
-          router.push("/admin/product-types")
-        }
-      }
-    } catch (error) {
-      console.error("Error in handleSubmit:", error)
-      alert("An unexpected error occurred. Please try again.")
-    } finally {
+    // Simulate API call
+    setTimeout(() => {
       setSaving(false)
-    }
-  }
-
-  if (loading) {
-    return (
-      <div className="p-8 text-center">
-        <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-gray-300 border-t-blue-600"></div>
-        <p className="mt-2 text-gray-500">Loading product type...</p>
-      </div>
-    )
+      router.push("/admin/product-types")
+    }, 1000)
   }
 
   return (

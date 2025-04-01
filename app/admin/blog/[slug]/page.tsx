@@ -2,11 +2,10 @@
 
 import type React from "react"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { ArrowLeft, Save } from "lucide-react"
 import Link from "next/link"
-import { createClientSupabaseClient } from "@/lib/supabase"
 
 interface BlogPost {
   id: number
@@ -19,7 +18,7 @@ interface BlogPost {
   excerpt: string
 }
 
-// Static blog post data for fallback
+// Static blog post data
 const staticBlogPosts: Record<string, BlogPost> = {
   "future-of-automated-retail": {
     id: 1,
@@ -49,66 +48,30 @@ const staticBlogPosts: Record<string, BlogPost> = {
 export default function EditBlogPostPage({ params }: { params: { slug: string } }) {
   const router = useRouter()
   const isNew = params.slug === "new"
-  const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [blogPost, setBlogPost] = useState<BlogPost>({
-    id: 0,
-    slug: "",
-    title: "",
-    content: "",
-    image_url: "/placeholder.svg?height=400&width=800",
-    author: "",
-    date: new Date().toISOString().split("T")[0],
-    excerpt: "",
-  })
-
-  useEffect(() => {
-    async function fetchBlogPost() {
-      if (isNew) {
-        setLoading(false)
-        return
-      }
-
-      try {
-        const supabase = createClientSupabaseClient()
-
-        // First try to fetch by slug
-        let { data, error } = await supabase.from("blog_posts").select("*").eq("slug", params.slug).single()
-
-        // If not found by slug and it's numeric, try by ID
-        if ((error || !data) && !isNaN(Number.parseInt(params.slug))) {
-          const result = await supabase.from("blog_posts").select("*").eq("id", Number.parseInt(params.slug)).single()
-
-          if (!result.error && result.data) {
-            data = result.data
-            error = null
-          }
+  const [blogPost, setBlogPost] = useState<BlogPost>(
+    isNew
+      ? {
+          id: 0,
+          slug: "",
+          title: "",
+          content: "",
+          image_url: "/placeholder.svg?height=400&width=800",
+          author: "",
+          date: new Date().toISOString().split("T")[0],
+          excerpt: "",
         }
-
-        if (error) {
-          console.error("Error fetching blog post:", error)
-          // Fall back to static data
-          const staticData = staticBlogPosts[params.slug]
-          if (staticData) {
-            setBlogPost(staticData)
-          }
-        } else if (data) {
-          setBlogPost(data)
-        }
-      } catch (error) {
-        console.error("Error in fetchBlogPost:", error)
-        // Fall back to static data
-        const staticData = staticBlogPosts[params.slug]
-        if (staticData) {
-          setBlogPost(staticData)
-        }
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchBlogPost()
-  }, [params.slug, isNew])
+      : staticBlogPosts[params.slug] || {
+          id: 0,
+          slug: "",
+          title: "",
+          content: "",
+          image_url: "/placeholder.svg?height=400&width=800",
+          author: "",
+          date: new Date().toISOString().split("T")[0],
+          excerpt: "",
+        },
+  )
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -119,69 +82,11 @@ export default function EditBlogPostPage({ params }: { params: { slug: string } 
     e.preventDefault()
     setSaving(true)
 
-    try {
-      const supabase = createClientSupabaseClient()
-
-      if (isNew) {
-        // Create new blog post
-        const { data, error } = await supabase
-          .from("blog_posts")
-          .insert([
-            {
-              slug: blogPost.slug,
-              title: blogPost.title,
-              content: blogPost.content,
-              image_url: blogPost.image_url,
-              author: blogPost.author,
-              date: blogPost.date,
-              excerpt: blogPost.excerpt,
-            },
-          ])
-          .select()
-
-        if (error) {
-          console.error("Error creating blog post:", error)
-          alert("Failed to create blog post. Please try again.")
-        } else {
-          router.push("/admin/blog")
-        }
-      } else {
-        // Update existing blog post
-        const { error } = await supabase
-          .from("blog_posts")
-          .update({
-            slug: blogPost.slug,
-            title: blogPost.title,
-            content: blogPost.content,
-            image_url: blogPost.image_url,
-            author: blogPost.author,
-            date: blogPost.date,
-            excerpt: blogPost.excerpt,
-          })
-          .eq("id", blogPost.id)
-
-        if (error) {
-          console.error("Error updating blog post:", error)
-          alert("Failed to update blog post. Please try again.")
-        } else {
-          router.push("/admin/blog")
-        }
-      }
-    } catch (error) {
-      console.error("Error in handleSubmit:", error)
-      alert("An unexpected error occurred. Please try again.")
-    } finally {
+    // Simulate API call
+    setTimeout(() => {
       setSaving(false)
-    }
-  }
-
-  if (loading) {
-    return (
-      <div className="p-8 text-center">
-        <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-gray-300 border-t-blue-600"></div>
-        <p className="mt-2 text-gray-500">Loading blog post...</p>
-      </div>
-    )
+      router.push("/admin/blog")
+    }, 1000)
   }
 
   return (

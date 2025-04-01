@@ -1,7 +1,6 @@
 import { Suspense } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { createServerSupabaseClient } from "@/lib/supabase"
 
 interface BlogPost {
   id: number
@@ -13,7 +12,7 @@ interface BlogPost {
   date: string
 }
 
-// Static blog post data for fallback
+// Static blog post data
 const staticBlogPosts: BlogPost[] = [
   {
     id: 1,
@@ -36,26 +35,8 @@ const staticBlogPosts: BlogPost[] = [
   },
 ]
 
-async function getBlogPosts() {
-  try {
-    const supabase = createServerSupabaseClient()
-
-    const { data, error } = await supabase.from("blog_posts").select("*").order("date", { ascending: false })
-
-    if (error) {
-      console.error("Error fetching blog posts:", error)
-      return staticBlogPosts
-    }
-
-    return data
-  } catch (error) {
-    console.error("Error in getBlogPosts:", error)
-    return staticBlogPosts
-  }
-}
-
-export default async function BlogPage() {
-  const blogPosts = await getBlogPosts()
+export default function BlogPage() {
+  const blogPosts = staticBlogPosts
 
   return (
     <main className="container mx-auto px-4 py-8">

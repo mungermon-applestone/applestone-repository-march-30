@@ -1,7 +1,6 @@
 import { Suspense } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { createServerSupabaseClient } from "@/lib/supabase"
 
 interface ProductType {
   id: number
@@ -19,7 +18,7 @@ interface Product {
   product_type_id: number
 }
 
-// Static product types data for fallback
+// Static product types data
 const staticProductTypes: ProductType[] = [
   {
     id: 1,
@@ -41,7 +40,7 @@ const staticProductTypes: ProductType[] = [
   },
 ]
 
-// Static products data for fallback
+// Static products data
 const staticProducts: Product[] = [
   {
     id: 1,
@@ -93,45 +92,9 @@ const staticProducts: Product[] = [
   },
 ]
 
-async function getProductTypes() {
-  try {
-    const supabase = createServerSupabaseClient()
-
-    const { data, error } = await supabase.from("product_types").select("*").order("name")
-
-    if (error) {
-      console.error("Error fetching product types:", error)
-      return staticProductTypes
-    }
-
-    return data
-  } catch (error) {
-    console.error("Error in getProductTypes:", error)
-    return staticProductTypes
-  }
-}
-
-async function getProducts() {
-  try {
-    const supabase = createServerSupabaseClient()
-
-    const { data, error } = await supabase.from("products").select("*")
-
-    if (error) {
-      console.error("Error fetching products:", error)
-      return staticProducts
-    }
-
-    return data
-  } catch (error) {
-    console.error("Error in getProducts:", error)
-    return staticProducts
-  }
-}
-
-export default async function ProductsPage() {
-  const productTypes = await getProductTypes()
-  const products = await getProducts()
+export default function ProductsPage() {
+  const productTypes = staticProductTypes
+  const products = staticProducts
 
   return (
     <main className="container mx-auto px-4 py-8">

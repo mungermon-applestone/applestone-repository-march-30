@@ -2,7 +2,6 @@ import { Suspense } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
-import { createServerSupabaseClient } from "@/lib/supabase"
 
 interface ProductType {
   id: number
@@ -20,7 +19,7 @@ interface Product {
   product_type_id: number
 }
 
-// Static product type data for fallback
+// Static product type data
 const staticProductTypes: Record<string, ProductType> = {
   "vending-machines": {
     id: 1,
@@ -42,7 +41,7 @@ const staticProductTypes: Record<string, ProductType> = {
   },
 }
 
-// Static products data for fallback
+// Static products data
 const staticProducts: Record<number, Product[]> = {
   1: [
     {
@@ -100,55 +99,8 @@ const staticProducts: Record<number, Product[]> = {
   ],
 }
 
-async function getProductType(slug: string) {
-  try {
-    const supabase = createServerSupabaseClient()
-
-    // First try to fetch by slug
-    let { data, error } = await supabase.from("product_types").select("*").eq("slug", slug).single()
-
-    // If not found by slug and it's numeric, try by ID
-    if ((error || !data) && !isNaN(Number.parseInt(slug))) {
-      const result = await supabase.from("product_types").select("*").eq("id", Number.parseInt(slug)).single()
-
-      if (!result.error && result.data) {
-        data = result.data
-        error = null
-      }
-    }
-
-    if (error) {
-      console.error("Error fetching product type:", error)
-      return staticProductTypes[slug] || null
-    }
-
-    return data
-  } catch (error) {
-    console.error("Error in getProductType:", error)
-    return staticProductTypes[slug] || null
-  }
-}
-
-async function getProductsByType(productTypeId: number) {
-  try {
-    const supabase = createServerSupabaseClient()
-
-    const { data, error } = await supabase.from("products").select("*").eq("product_type_id", productTypeId)
-
-    if (error) {
-      console.error("Error fetching products by type:", error)
-      return staticProducts[productTypeId] || []
-    }
-
-    return data
-  } catch (error) {
-    console.error("Error in getProductsByType:", error)
-    return staticProducts[productTypeId] || []
-  }
-}
-
-export default async function ProductTypePage({ params }: { params: { slug: string } }) {
-  const productType = await getProductType(params.slug)
+export default function ProductTypePage({ params }: { params: { slug: string } }) {
+  const productType = staticProductTypes[params.slug]
 
   if (!productType) {
     return (
@@ -162,7 +114,7 @@ export default async function ProductTypePage({ params }: { params: { slug: stri
     )
   }
 
-  const products = await getProductsByType(productType.id)
+  const products = staticProducts[productType.id] || []
 
   return (
     <main className="container mx-auto px-4 py-8">

@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server"
-import { createServerSupabaseClient } from "@/lib/supabase"
 
-// Static blog post data for fallback
+// Static blog post data
 const staticBlogPosts = {
   "future-of-automated-retail": {
     id: 1,
@@ -30,30 +29,9 @@ const staticBlogPosts = {
 
 export async function GET(request: Request, { params }: { params: { slug: string } }) {
   try {
-    const supabase = createServerSupabaseClient()
-
-    // First try to fetch by slug
-    let { data, error } = await supabase.from("blog_posts").select("*").eq("slug", params.slug).single()
-
-    // If not found by slug and it's numeric, try by ID
-    if ((error || !data) && !isNaN(Number.parseInt(params.slug))) {
-      const result = await supabase.from("blog_posts").select("*").eq("id", Number.parseInt(params.slug)).single()
-
-      if (!result.error && result.data) {
-        data = result.data
-        error = null
-      }
-    }
-
-    if (error) {
-      console.error("Error fetching blog post:", error)
-      // Fallback to static data
-      return NextResponse.json(staticBlogPosts[params.slug] || { error: "Blog post not found" }, {
-        status: staticBlogPosts[params.slug] ? 200 : 404,
-      })
-    }
-
-    return NextResponse.json(data)
+    return NextResponse.json(staticBlogPosts[params.slug] || { error: "Blog post not found" }, {
+      status: staticBlogPosts[params.slug] ? 200 : 404,
+    })
   } catch (error) {
     console.error("Error in GET blog post:", error)
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 })
