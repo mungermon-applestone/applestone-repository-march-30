@@ -1,14 +1,7 @@
-import type { Metadata } from "next"
+import { Suspense } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { notFound } from "next/navigation"
 import { createServerSupabaseClient } from "@/lib/supabase"
-import { SectionHeader } from "@/components/section-header"
-import { FeatureCheckList } from "@/components/feature-check-list"
-import { CallToAction } from "@/components/call-to-action"
-
-// Keep using [slug] here as this is a different route pattern from admin/product-types/[id]
-// The error occurs when the same route pattern uses different parameter names
 
 interface ProductType {
   id: number
@@ -20,7 +13,16 @@ interface ProductType {
   long_description?: string
 }
 
-// Static product data for fallback
+interface Product {
+  id: number
+  name: string
+  description: string
+  price: number
+  image_url: string
+  product_type_id: number
+}
+
+// Static product type data for fallback
 const staticProductTypes: Record<string, ProductType> = {
   grocery: {
     id: 1,
@@ -64,40 +66,86 @@ const staticProductTypes: Record<string, ProductType> = {
   },
 }
 
-export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
-  // Try to get product type from database or fallback to static data
-  const productType = await getProductType(params.slug)
+// Static product data for fallback
+const staticProducts: Product[] = [
+  {
+    id: 1,
+    name: "Smart Grocery Vending Machine",
+    description: "Advanced vending solution for grocery items with temperature control and inventory management.",
+    price: 5999,
+    image_url: "/placeholder.svg?height=300&width=400",
+    product_type_id: 1,
+  },
+  {
+    id: 2,
+    name: "Compact Vape Dispenser",
+    description: "Secure vape product dispenser with age verification and compliance tracking.",
+    price: 3499,
+    image_url: "/placeholder.svg?height=300&width=400",
+    product_type_id: 2,
+  },
+  {
+    id: 3,
+    name: "Cannabis Retail Kiosk",
+    description: "Secure, compliant cannabis retail kiosk with age verification and inventory tracking.",
+    price: 6999,
+    image_url: "/placeholder.svg?height=300&width=400",
+    product_type_id: 3,
+  },
+  {
+    id: 4,
+    name: "Fresh Food Vending Solution",
+    description: "Temperature-controlled vending solution for fresh food items.",
+    price: 7499,
+    image_url: "/placeholder.svg?height=300&width=400",
+    product_type_id: 4,
+  },
+]
 
-  if (!productType) {
-    return {
-      title: "Product Type Not Found",
-      description: "The requested product type could not be found.",
-    }
-  }
-
-  return {
-    title: `${productType.title} Vending Solutions`,
-    description: productType.description,
-  }
-}
-
-async function getProductType(slug: string): Promise<ProductType | null> {
+async function getProductType(slug: string) {
   try {
     const supabase = createServerSupabaseClient()
 
     // First try to fetch by slug
-    const { data, error } = await supabase.from("product_types").select("*").eq("slug", slug).single()
+    let { data, error } = await supabase.from("product_types").select("*").eq("slug", slug).single()
 
-    if (error || !data) {
-      // Fallback to static data
+    // If not found by slug and it's numeric, try by ID
+    if ((error || !data) && !isNaN(Number.parseInt(slug))) {
+      const result = await supabase.from("product_types").select("*").eq("id", Number.parseInt(slug)).single()
+
+      if (!result.error && result.data) {
+        data = result.data
+        error = null
+      }
+    }
+
+    if (error) {
+      console.error("Error fetching product type:", error)
       return staticProductTypes[slug] || null
     }
 
     return data
   } catch (error) {
-    console.error("Error fetching product type:", error)
-    // Fallback to static data
+    console.error("Error in getProductType:", error)
     return staticProductTypes[slug] || null
+  }
+}
+
+async function getProductsByType(productTypeId: number) {
+  try {
+    const supabase = createServerSupabaseClient()
+
+    const { data, error } = await supabase.from("products").select("*").eq("product_type_id", productTypeId)
+
+    if (error) {
+      console.error("Error fetching products by type:", error)
+      return staticProducts.filter((p) => p.product_type_id === productTypeId)
+    }
+
+    return data
+  } catch (error) {
+    console.error("Error in getProductsByType:", error)
+    return staticProducts.filter((p) => p.product_type_id === productTypeId)
   }
 }
 
@@ -105,36 +153,95 @@ export default async function ProductTypePage({ params }: { params: { slug: stri
   const productType = await getProductType(params.slug)
 
   if (!productType) {
-    notFound()
+    return (
+      <div className="container mx-auto px-4 py-16 text-center">
+        <h1 className="text-2xl font-bold mb-4">Product Type Not Found</h1>
+        <p className="mb-8">The product type you're looking for doesn't exist or has been removed.</p>
+        <Link href="/product-types" className="text-blue-600 hover:underline">
+          Browse all product types
+        </Link>
+      </div>
+    )
   }
+
+  const products = await getProductsByType(productType.id)
 
   return (
     <main className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <Link href="/product-types" className="text-blue-600 hover:underline mb-4 inline-block">
-          ← Back to Product Types
-        </Link>
+      <div className="grid lg:grid-cols-2 gap-8 mb-12">
+        <div className="relative aspect-video">
+          <Suspense fallback={<div className="w-full h-full bg-gray-200 animate-pulse rounded-lg"></div>}>
+            <Image
+              src={productType.image_url || "/placeholder.svg?height=400&width=600"}
+              alt={productType.title}
+              fill
+              className="object-cover rounded-lg"
+              priority
+            />
+          </Suspense>
+        </div>
+
+        <div>
+          <h1 className="text-3xl font-bold mb-4">{productType.title}</h1>
+          <p className="text-lg mb-6">{productType.description}</p>
+
+          <div className="mb-6">
+            <h2 className="text-xl font-semibold mb-3">Key Features</h2>
+            <ul className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              {productType.features.map((feature, index) => (
+                <li key={index} className="flex items-center">
+                  <div className="h-2 w-2 bg-blue-600 rounded-full mr-2"></div>
+                  {feature}
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {productType.long_description && (
+            <div className="mb-6">
+              <h2 className="text-xl font-semibold mb-3">About {productType.title} Solutions</h2>
+              <p className="text-gray-700">{productType.long_description}</p>
+            </div>
+          )}
+
+          <Link
+            href="/contact"
+            className="inline-block bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-md font-medium"
+          >
+            Request More Information
+          </Link>
+        </div>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-8 mb-12">
+      {products.length > 0 && (
         <div>
-          <SectionHeader title={productType.title} subtitle="Vending Solutions" alignment="left" />
-          <p className="text-lg mb-6">{productType.description}</p>
-          {productType.long_description && <p className="mb-6">{productType.long_description}</p>}
-          <FeatureCheckList features={productType.features} />
-          <div className="mt-8">
-            <CallToAction text="Request a Quote" href="/contact" variant="primary" />
+          <h2 className="text-2xl font-bold mb-6">{productType.title} Products</h2>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {products.map((product) => (
+              <Link key={product.id} href={`/products/${product.id}`} className="group">
+                <div className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300">
+                  <div className="relative h-48">
+                    <Image
+                      src={product.image_url || "/placeholder.svg?height=300&width=400"}
+                      alt={product.name}
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                  </div>
+                  <div className="p-4">
+                    <h3 className="text-lg font-semibold mb-2 group-hover:text-blue-600 transition-colors duration-300">
+                      {product.name}
+                    </h3>
+                    <p className="text-gray-700 text-sm mb-3">{product.description}</p>
+                    <div className="text-blue-600 font-bold">${product.price.toLocaleString()}</div>
+                  </div>
+                </div>
+              </Link>
+            ))}
           </div>
         </div>
-        <div className="relative h-[400px] rounded-lg overflow-hidden">
-          <Image
-            src={productType.image_url || "/placeholder.svg?height=400&width=600"}
-            alt={productType.title}
-            fill
-            className="object-cover"
-          />
-        </div>
-      </div>
+      )}
     </main>
   )
 }
