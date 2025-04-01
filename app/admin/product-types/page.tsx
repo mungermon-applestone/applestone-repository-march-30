@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { Plus, Search, Edit, Trash } from "lucide-react"
+import { Edit, Trash2, Plus } from "lucide-react"
 import { createClientSupabaseClient } from "@/lib/supabase"
 
 interface ProductType {
@@ -12,10 +12,32 @@ interface ProductType {
   description: string
 }
 
-export default function ProductTypesPage() {
+// Static product type data for fallback
+const staticProductTypes: ProductType[] = [
+  {
+    id: 1,
+    name: "Vending Machines",
+    slug: "vending-machines",
+    description: "Smart vending machines with advanced features and customization options.",
+  },
+  {
+    id: 2,
+    name: "Payment Systems",
+    slug: "payment-systems",
+    description: "Cashless payment solutions for vending machines and retail.",
+  },
+  {
+    id: 3,
+    name: "Accessories",
+    slug: "accessories",
+    description: "Add-ons and accessories for vending machines and payment systems.",
+  },
+]
+
+export default function AdminProductTypesPage() {
   const [productTypes, setProductTypes] = useState<ProductType[]>([])
   const [loading, setLoading] = useState(true)
-  const [searchQuery, setSearchQuery] = useState("")
+  const [deleting, setDeleting] = useState<number | null>(null)
 
   useEffect(() => {
     async function fetchProductTypes() {
@@ -25,53 +47,13 @@ export default function ProductTypesPage() {
 
         if (error) {
           console.error("Error fetching product types:", error)
-          // Fallback to static data
-          setProductTypes([
-            {
-              id: 1,
-              name: "Vending Machines",
-              slug: "vending-machines",
-              description: "Smart vending machines with advanced features and customization options.",
-            },
-            {
-              id: 2,
-              name: "Payment Systems",
-              slug: "payment-systems",
-              description: "Cashless payment solutions for vending machines and retail.",
-            },
-            {
-              id: 3,
-              name: "Accessories",
-              slug: "accessories",
-              description: "Add-ons and accessories for vending machines and payment systems.",
-            },
-          ])
+          setProductTypes(staticProductTypes)
         } else {
-          setProductTypes(data || [])
+          setProductTypes(data || staticProductTypes)
         }
       } catch (error) {
         console.error("Error in fetchProductTypes:", error)
-        // Fallback to static data
-        setProductTypes([
-          {
-            id: 1,
-            name: "Vending Machines",
-            slug: "vending-machines",
-            description: "Smart vending machines with advanced features and customization options.",
-          },
-          {
-            id: 2,
-            name: "Payment Systems",
-            slug: "payment-systems",
-            description: "Cashless payment solutions for vending machines and retail.",
-          },
-          {
-            id: 3,
-            name: "Accessories",
-            slug: "accessories",
-            description: "Add-ons and accessories for vending machines and payment systems.",
-          },
-        ])
+        setProductTypes(staticProductTypes)
       } finally {
         setLoading(false)
       }
@@ -80,37 +62,33 @@ export default function ProductTypesPage() {
     fetchProductTypes()
   }, [])
 
-  const filteredProductTypes = productTypes.filter(
-    (type) =>
-      type.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      type.description.toLowerCase().includes(searchQuery.toLowerCase()),
-  )
-
   const handleDelete = async (id: number) => {
-    if (!confirm("Are you sure you want to delete this product type?")) {
-      return
-    }
+    if (confirm("Are you sure you want to delete this product type? This action cannot be undone.")) {
+      setDeleting(id)
 
-    try {
-      const supabase = createClientSupabaseClient()
-      const { error } = await supabase.from("product_types").delete().eq("id", id)
+      try {
+        const supabase = createClientSupabaseClient()
+        const { error } = await supabase.from("product_types").delete().eq("id", id)
 
-      if (error) {
-        console.error("Error deleting product type:", error)
-        alert("Failed to delete product type. Please try again.")
-      } else {
-        setProductTypes(productTypes.filter((type) => type.id !== id))
+        if (error) {
+          console.error("Error deleting product type:", error)
+          alert("Failed to delete product type. Please try again.")
+        } else {
+          setProductTypes((prev) => prev.filter((type) => type.id !== id))
+        }
+      } catch (error) {
+        console.error("Error in handleDelete:", error)
+        alert("An unexpected error occurred. Please try again.")
+      } finally {
+        setDeleting(null)
       }
-    } catch (error) {
-      console.error("Error in handleDelete:", error)
-      alert("An unexpected error occurred. Please try again.")
     }
   }
 
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-semibold">Product Types</h2>
+        <h2 className="text-xl font-semibold">Product Categories</h2>
         <Link
           href="/admin/product-types/new"
           className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center"
@@ -120,27 +98,17 @@ export default function ProductTypesPage() {
         </Link>
       </div>
 
-      <div className="mb-6">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-          <input
-            type="text"
-            placeholder="Search product types..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 pr-4 py-2 border rounded-md w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-      </div>
-
       {loading ? (
-        <div className="text-center py-8">
+        <div className="text-center py-12">
           <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-gray-300 border-t-blue-600"></div>
-          <p className="mt-2 text-gray-500">Loading product types...</p>
+          <p className="mt-2 text-gray-500">Loading product categories...</p>
         </div>
-      ) : filteredProductTypes.length === 0 ? (
-        <div className="text-center py-8 bg-white rounded-lg shadow-sm">
-          <p className="text-gray-500">No product types found.</p>
+      ) : productTypes.length === 0 ? (
+        <div className="text-center py-12 bg-white rounded-lg shadow-sm">
+          <p className="text-gray-500">No product categories found.</p>
+          <Link href="/admin/product-types/new" className="mt-4 inline-block text-blue-600 hover:underline">
+            Create your first product category
+          </Link>
         </div>
       ) : (
         <div className="bg-white rounded-lg shadow-sm overflow-hidden">
@@ -149,33 +117,36 @@ export default function ProductTypesPage() {
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Slug</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Description
-                </th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {filteredProductTypes.map((type) => (
+              {productTypes.map((type) => (
                 <tr key={type.id}>
-                  <td className="px-6 py-4">
-                    <div className="font-medium text-gray-900">{type.name}</div>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm font-medium text-gray-900">{type.name}</div>
+                    <div className="text-sm text-gray-500 truncate max-w-xs">{type.description}</div>
                   </td>
-                  <td className="px-6 py-4">
-                    <div className="text-sm text-gray-500">{type.slug}</div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="text-sm text-gray-500 line-clamp-2">{type.description}</div>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">{type.slug}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <div className="flex justify-end space-x-2">
                       <Link href={`/admin/product-types/${type.slug}`} className="text-blue-600 hover:text-blue-900">
                         <Edit className="h-5 w-5" />
                       </Link>
-                      <button onClick={() => handleDelete(type.id)} className="text-red-600 hover:text-red-900">
-                        <Trash className="h-5 w-5" />
+                      <button
+                        onClick={() => handleDelete(type.id)}
+                        disabled={deleting === type.id}
+                        className="text-red-600 hover:text-red-900 disabled:opacity-50"
+                      >
+                        {deleting === type.id ? (
+                          <div className="animate-spin rounded-full h-5 w-5 border-2 border-red-600 border-t-transparent"></div>
+                        ) : (
+                          <Trash2 className="h-5 w-5" />
+                        )}
                       </button>
                     </div>
                   </td>

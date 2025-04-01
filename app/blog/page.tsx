@@ -1,11 +1,11 @@
-import Link from "next/link"
+import { Suspense } from "react"
 import Image from "next/image"
+import Link from "next/link"
 import { createServerSupabaseClient } from "@/lib/supabase"
-import { SectionHeader } from "@/components/section-header"
 
 interface BlogPost {
   id: number
-  slug: string // Added slug field
+  slug: string
   title: string
   excerpt: string
   image_url: string
@@ -21,7 +21,7 @@ const staticBlogPosts: BlogPost[] = [
     title: "The Future of Automated Retail",
     excerpt:
       "Exploring the latest trends and technologies shaping the future of automated retail and vending solutions.",
-    image_url: "/placeholder.svg?height=400&width=600",
+    image_url: "/placeholder.svg?height=300&width=500",
     author: "John Doe",
     date: "2023-01-15",
   },
@@ -30,7 +30,7 @@ const staticBlogPosts: BlogPost[] = [
     slug: "maximizing-roi-with-smart-vending",
     title: "Maximizing ROI with Smart Vending Machines",
     excerpt: "Learn how smart vending technology can increase your return on investment and boost sales.",
-    image_url: "/placeholder.svg?height=400&width=600",
+    image_url: "/placeholder.svg?height=300&width=500",
     author: "Jane Smith",
     date: "2023-02-22",
   },
@@ -47,7 +47,7 @@ async function getBlogPosts() {
       return staticBlogPosts
     }
 
-    return data || staticBlogPosts
+    return data
   } catch (error) {
     console.error("Error in getBlogPosts:", error)
     return staticBlogPosts
@@ -55,38 +55,47 @@ async function getBlogPosts() {
 }
 
 export default async function BlogPage() {
-  const posts = await getBlogPosts()
+  const blogPosts = await getBlogPosts()
 
   return (
     <main className="container mx-auto px-4 py-8">
-      <SectionHeader title="Blog" subtitle="Latest News and Insights" alignment="center" />
+      <div className="mb-12 text-center">
+        <h1 className="text-3xl md:text-4xl font-bold mb-4">Our Blog</h1>
+        <p className="text-lg text-gray-700 max-w-2xl mx-auto">
+          Stay updated with the latest news, insights, and trends in the vending machine industry.
+        </p>
+      </div>
 
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mt-12">
-        {posts.map((post) => (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {blogPosts.map((post) => (
           <Link key={post.id} href={`/blog/${post.slug}`} className="group">
-            <div className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300">
-              <div className="relative h-48">
-                <Image
-                  src={post.image_url || "/placeholder.svg?height=400&width=600"}
-                  alt={post.title}
-                  fill
-                  className="object-cover group-hover:scale-105 transition-transform duration-300"
-                />
+            <article className="bg-white rounded-lg shadow-sm overflow-hidden transition-shadow hover:shadow-md h-full flex flex-col">
+              <div className="relative aspect-video">
+                <Suspense fallback={<div className="w-full h-full bg-gray-200 animate-pulse"></div>}>
+                  <Image
+                    src={post.image_url || "/placeholder.svg?height=300&width=500"}
+                    alt={post.title}
+                    fill
+                    className="object-cover"
+                  />
+                </Suspense>
               </div>
-              <div className="p-6">
-                <h3 className="text-xl font-semibold mb-2 group-hover:text-blue-600 transition-colors duration-300">
-                  {post.title}
-                </h3>
-                <p className="text-gray-600 text-sm mb-4">
-                  By {post.author} •{" "}
-                  {new Date(post.date).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
-                </p>
-                <p className="text-gray-700">{post.excerpt}</p>
-                <div className="mt-4 text-blue-600 font-medium group-hover:text-blue-800 transition-colors duration-300">
-                  Read More →
+              <div className="p-4 flex-1 flex flex-col">
+                <h2 className="text-xl font-semibold mb-2 group-hover:text-blue-600">{post.title}</h2>
+                <p className="text-gray-600 mb-4 flex-1">{post.excerpt}</p>
+                <div className="text-sm text-gray-500">
+                  <span>{post.author}</span>
+                  <span className="mx-2">•</span>
+                  <time dateTime={post.date}>
+                    {new Date(post.date).toLocaleDateString("en-US", {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    })}
+                  </time>
                 </div>
               </div>
-            </div>
+            </article>
           </Link>
         ))}
       </div>
