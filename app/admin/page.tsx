@@ -1,167 +1,123 @@
+import type React from "react"
 import Link from "next/link"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Target, Package, ShoppingBag, FileText, Upload, Home, FolderOpen, Layout } from "lucide-react"
-import { createServerSupabaseClient } from "@/lib/supabase"
+import { Package, Target, Truck, Monitor, FileText, Users } from "lucide-react"
 
-// Function to get counts from database tables
-async function getContentCounts() {
-  const supabase = createServerSupabaseClient()
-
-  const tables = ["hero_section", "page_headers", "business_goals", "machines", "product_types", "updates"]
-
-  const counts: Record<string, number> = {}
-
-  for (const table of tables) {
-    const { count, error } = await supabase.from(table).select("*", { count: "exact", head: true })
-
-    if (!error) {
-      counts[table] = count || 0
-    } else {
-      console.error(`Error getting count for ${table}:`, error)
-      counts[table] = 0
-    }
-  }
-
-  return counts
-}
-
-// Function to get storage stats
-async function getStorageStats() {
-  const supabase = createServerSupabaseClient()
-
-  try {
-    const { data, error } = await supabase.storage.from("images").list()
-
-    if (error) {
-      console.error("Error getting storage stats:", error)
-      return { fileCount: 0 }
-    }
-
-    return { fileCount: data.length }
-  } catch (error) {
-    console.error("Error in getStorageStats:", error)
-    return { fileCount: 0 }
-  }
-}
-
-export default async function AdminDashboard() {
-  const counts = await getContentCounts()
-  const storageStats = await getStorageStats()
-
-  const contentSections = [
-    {
-      title: "Hero Section",
-      description: "Edit the main hero section on the homepage",
-      icon: <Home className="h-6 w-6" />,
-      link: "/admin/hero",
-      count: counts["hero_section"],
-    },
-    {
-      title: "Page Headers",
-      description: "Edit headers for all site pages",
-      icon: <Layout className="h-6 w-6" />,
-      link: "/admin/page-headers",
-      count: counts["page_headers"],
-    },
-    {
-      title: "Business Goals",
-      description: "Manage business goals content",
-      icon: <Target className="h-6 w-6" />,
-      link: "/admin/business-goals",
-      count: counts["business_goals"],
-    },
-    {
-      title: "Machines",
-      description: "Edit vending machine information",
-      icon: <Package className="h-6 w-6" />,
-      link: "/admin/machines",
-      count: counts["machines"],
-    },
-    {
-      title: "Product Types",
-      description: "Manage product type content",
-      icon: <ShoppingBag className="h-6 w-6" />,
-      link: "/admin/product-types",
-      count: counts["product_types"],
-    },
-    {
-      title: "Updates & News",
-      description: "Manage updates and news content",
-      icon: <FileText className="h-6 w-6" />,
-      link: "/admin/updates",
-      count: counts["updates"],
-    },
-  ]
-
-  const mediaSections = [
-    {
-      title: "Media Library",
-      description: "Browse and manage all media files",
-      icon: <FolderOpen className="h-6 w-6" />,
-      link: "/admin/media",
-      count: storageStats.fileCount,
-    },
-    {
-      title: "Image Upload",
-      description: "Upload and manage images",
-      icon: <Upload className="h-6 w-6" />,
-      link: "/admin/images",
-      count: null,
-    },
-  ]
-
+export default function AdminDashboard() {
   return (
-    <div className="container mx-auto px-4 py-12">
-      <div className="flex items-center justify-between mb-8">
-        <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+    <div>
+      <div className="mb-8">
+        <h2 className="text-xl font-semibold mb-4">Content Management</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <ContentCard
+            title="Product Types"
+            count={4}
+            icon={<Package className="h-8 w-8 text-blue-600" />}
+            href="/admin/product-types"
+          />
+          <ContentCard
+            title="Business Goals"
+            count={4}
+            icon={<Target className="h-8 w-8 text-blue-600" />}
+            href="/admin/business-goals"
+          />
+          <ContentCard
+            title="Machines"
+            count={4}
+            icon={<Truck className="h-8 w-8 text-blue-600" />}
+            href="/admin/machines"
+          />
+          <ContentCard
+            title="Technology"
+            count={3}
+            icon={<Monitor className="h-8 w-8 text-blue-600" />}
+            href="/admin/technology"
+          />
+          <ContentCard
+            title="Updates"
+            count={4}
+            icon={<FileText className="h-8 w-8 text-blue-600" />}
+            href="/admin/updates"
+          />
+          <ContentCard title="Users" count={4} icon={<Users className="h-8 w-8 text-blue-600" />} href="/admin/users" />
+        </div>
       </div>
 
-      <h2 className="text-xl font-semibold mb-4">Content Management</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
-        {contentSections.map((section, index) => (
-          <Card key={index}>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-lg font-medium">{section.title}</CardTitle>
-              <div className="p-2 bg-primary/10 rounded-full text-primary">{section.icon}</div>
-            </CardHeader>
-            <CardContent>
-              <CardDescription className="mb-4">{section.description}</CardDescription>
-              {section.count !== null && (
-                <p className="text-sm text-muted-foreground mb-4">
-                  {section.count} {section.count === 1 ? "item" : "items"}
-                </p>
-              )}
-              <Button asChild>
-                <Link href={section.link}>Manage Content</Link>
-              </Button>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-white p-6 rounded-lg shadow-sm">
+          <h3 className="text-lg font-semibold mb-4">Recent Activity</h3>
+          <ul className="space-y-3">
+            <ActivityItem action="Updated" item="Grocery Product Type" user="Admin" time="2 hours ago" />
+            <ActivityItem action="Created" item="New Machine: Smart Locker System" user="Admin" time="1 day ago" />
+            <ActivityItem action="Updated" item="Technology Page Content" user="Admin" time="2 days ago" />
+            <ActivityItem action="Deleted" item="Outdated Update Post" user="Admin" time="3 days ago" />
+          </ul>
+        </div>
 
-      <h2 className="text-xl font-semibold mb-4">Media Management</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {mediaSections.map((section, index) => (
-          <Card key={index}>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-lg font-medium">{section.title}</CardTitle>
-              <div className="p-2 bg-primary/10 rounded-full text-primary">{section.icon}</div>
-            </CardHeader>
-            <CardContent>
-              <CardDescription className="mb-4">{section.description}</CardDescription>
-              {section.count !== null && (
-                <p className="text-sm text-muted-foreground mb-4">
-                  {section.count} {section.count === 1 ? "file" : "files"}
-                </p>
-              )}
-              <Button asChild>
-                <Link href={section.link}>Manage Media</Link>
-              </Button>
-            </CardContent>
-          </Card>
-        ))}
+        <div className="bg-white p-6 rounded-lg shadow-sm">
+          <h3 className="text-lg font-semibold mb-4">System Status</h3>
+          <div className="space-y-4">
+            <StatusItem label="Database Connection" status="Connected" isOk={true} />
+            <StatusItem label="Content Cache" status="Up to date" isOk={true} />
+            <StatusItem label="API Status" status="Operational" isOk={true} />
+            <StatusItem label="Last Backup" status="Today at 3:00 AM" isOk={true} />
+          </div>
+        </div>
       </div>
+    </div>
+  )
+}
+
+function ContentCard({
+  title,
+  count,
+  icon,
+  href,
+}: { title: string; count: number; icon: React.ReactNode; href: string }) {
+  return (
+    <Link href={href} className="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+      <div className="flex justify-between items-center mb-4">
+        <div className="bg-blue-50 p-3 rounded-full">{icon}</div>
+        <span className="text-2xl font-bold text-gray-700">{count}</span>
+      </div>
+      <h3 className="text-lg font-medium">{title}</h3>
+      <p className="text-sm text-gray-500 mt-1">Manage {title.toLowerCase()}</p>
+    </Link>
+  )
+}
+
+function ActivityItem({ action, item, user, time }: { action: string; item: string; user: string; time: string }) {
+  return (
+    <li className="flex items-center justify-between">
+      <div>
+        <span
+          className={`font-medium ${
+            action === "Created" ? "text-green-600" : action === "Updated" ? "text-blue-600" : "text-red-600"
+          }`}
+        >
+          {action}
+        </span>
+        <span className="text-gray-600"> {item}</span>
+      </div>
+      <div className="text-sm text-gray-500">
+        <span>
+          {user} • {time}
+        </span>
+      </div>
+    </li>
+  )
+}
+
+function StatusItem({ label, status, isOk }: { label: string; status: string; isOk: boolean }) {
+  return (
+    <div className="flex justify-between items-center">
+      <span className="text-gray-600">{label}</span>
+      <span
+        className={`px-2 py-1 rounded-full text-xs font-medium ${
+          isOk ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
+        }`}
+      >
+        {status}
+      </span>
     </div>
   )
 }

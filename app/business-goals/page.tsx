@@ -1,10 +1,13 @@
+"use client"
+
 import Link from "next/link"
-import Image from "next/image"
 import { ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { createServerSupabaseClient } from "@/lib/supabase"
+import { LoadingFallback } from "@/components/loading-fallback"
+import { AlertMessage } from "@/components/alert-message"
 import { PageHeader } from "@/components/page-header"
-import { unstable_noStore as noStore } from "next/cache"
+import { OptimizedImage } from "@/components/optimized-image"
+import { useFetchData } from "@/hooks/use-fetch-data"
 
 // Define the type for our business goals data
 interface BusinessGoal {
@@ -16,8 +19,8 @@ interface BusinessGoal {
   benefits?: string[]
 }
 
-// Default business goals in case the database is empty
-const defaultBusinessGoals: BusinessGoal[] = [
+// Fallback business goals in case the fetch fails
+const fallbackBusinessGoals: BusinessGoal[] = [
   {
     id: 1,
     slug: "increase-revenue",
@@ -52,37 +55,31 @@ const defaultBusinessGoals: BusinessGoal[] = [
   },
 ]
 
-// Fetch business goals from Supabase
-async function getBusinessGoals(): Promise<BusinessGoal[]> {
-  // Disable caching
-  noStore()
+export default function BusinessGoalsPage() {
+  const {
+    data: businessGoals,
+    isLoading,
+    error,
+    retry,
+  } = useFetchData<BusinessGoal[]>({
+    url: "/api/business-goals/all",
+    fallbackData: fallbackBusinessGoals,
+  })
 
-  const supabase = createServerSupabaseClient()
-
-  try {
-    const { data, error } = await supabase.from("business_goals").select("*").order("id", { ascending: true })
-
-    if (error || !data || data.length === 0) {
-      console.log("No business goals found, using default")
-      return defaultBusinessGoals
-    }
-
-    return data.map((item) => ({
-      id: item.id,
-      slug: item.slug || `goal-${item.id}`,
-      title: item.title,
-      description: item.description,
-      image_url: item.image_url || "/placeholder.svg?height=300&width=400",
-      benefits: item.benefits || [],
-    }))
-  } catch (error) {
-    console.error("Error fetching business goals:", error)
-    return defaultBusinessGoals
+  if (isLoading) {
+    return (
+      <>
+        <PageHeader
+          pageKey="business-goals"
+          defaultTitle="Achieve Your Business Goals"
+          defaultDescription="Our vending machine software helps you achieve your business goals with powerful features and insights."
+        />
+        <div className="container px-4 md:px-6 py-8">
+          <LoadingFallback minHeight="400px" />
+        </div>
+      </>
+    )
   }
-}
-
-export default async function BusinessGoalsPage() {
-  const businessGoals = await getBusinessGoals()
 
   return (
     <>
@@ -96,11 +93,13 @@ export default async function BusinessGoalsPage() {
       {/* Business Goals Grid */}
       <section className="w-full py-12 md:py-24">
         <div className="container px-4 md:px-6">
+          {error && <AlertMessage type="warning" message={error} className="mb-6" onRetry={retry} dismissible />}
+
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-2">
             {businessGoals.map((goal) => (
               <div key={goal.id} className="group relative overflow-hidden rounded-lg border bg-background p-2">
                 <div className="aspect-video overflow-hidden rounded-md">
-                  <Image
+                  <OptimizedImage
                     src={goal.image_url || "/placeholder.svg"}
                     alt={goal.title}
                     width={400}

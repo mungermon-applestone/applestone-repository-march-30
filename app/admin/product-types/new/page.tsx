@@ -1,11 +1,6 @@
-import ProductTypeForm from "../product-type-form"
+import EditProductTypePage from "../[id]/page"
 
 export default function NewProductTypePage() {
-  return (
-    <div>
-      <h1 className="text-3xl font-bold mb-8">Add New Product Type</h1>
-      <ProductTypeForm />
-    </div>
-  )
+  return <EditProductTypePage params={{ id: "new" }} />
 }
 

@@ -4,90 +4,94 @@ import type React from "react"
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
+import { Lock } from "lucide-react"
+import Cookies from "js-cookie"
 
-export default function LoginPage() {
+export default function AdminLoginPage() {
   const router = useRouter()
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
+  const [loading, setLoading] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setIsLoading(true)
     setError("")
+    setLoading(true)
 
     try {
-      console.log("Attempting login...")
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ username, password }),
-      })
+      // In a real application, you would validate credentials against a database
+      // For now, we'll use environment variables for simplicity
+      const adminUsername = process.env.NEXT_PUBLIC_ADMIN_USERNAME
+      const adminPassword = process.env.NEXT_PUBLIC_ADMIN_PASSWORD
 
-      const data = await response.json()
-      console.log("Login response:", response.status)
+      if (username === adminUsername && password === adminPassword) {
+        // Set a cookie to indicate the user is authenticated
+        Cookies.set("admin-auth", "true", { expires: 1 }) // Expires in 1 day
 
-      if (!response.ok) {
-        throw new Error(data.message || "Login failed")
+        // Redirect to admin dashboard
+        router.push("/admin")
+      } else {
+        setError("Invalid username or password")
       }
-
-      // Redirect to admin dashboard on success
-      router.push("/admin")
-      router.refresh()
-    } catch (err) {
-      console.error("Login error:", err)
-      setError(err instanceof Error ? err.message : "Login failed")
+    } catch (error) {
+      console.error("Login error:", error)
+      setError("An unexpected error occurred. Please try again.")
     } finally {
-      setIsLoading(false)
+      setLoading(false)
     }
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted/30 p-4">
-      <div className="w-full max-w-md space-y-8 rounded-lg border bg-background p-8 shadow-sm">
-        <div className="text-center">
+    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <div className="max-w-md w-full p-8 bg-white rounded-lg shadow-md">
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-100 mb-4">
+            <Lock className="h-8 w-8 text-blue-600" />
+          </div>
           <h1 className="text-2xl font-bold">Admin Login</h1>
-          <p className="text-sm text-muted-foreground">Sign in to access the CMS</p>
+          <p className="text-gray-600">Sign in to access the admin dashboard</p>
         </div>
 
-        {error && <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">{error}</div>}
+        {error && <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-md">{error}</div>}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-2">
-            <label htmlFor="username" className="text-sm font-medium">
-              Username
-            </label>
+        <form onSubmit={handleSubmit}>
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Username</label>
             <input
-              id="username"
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
               required
+              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
-          <div className="space-y-2">
-            <label htmlFor="password" className="text-sm font-medium">
-              Password
-            </label>
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
             <input
-              id="password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
               required
+              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
-          <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? "Signing in..." : "Sign in"}
-          </Button>
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-md transition-colors disabled:opacity-50"
+          >
+            {loading ? (
+              <div className="flex items-center justify-center">
+                <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
+                Signing in...
+              </div>
+            ) : (
+              "Sign In"
+            )}
+          </button>
         </form>
       </div>
     </div>
