@@ -1,63 +1,39 @@
 "use client"
 
 import type React from "react"
+
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { X, Plus, Save, ArrowLeft } from "lucide-react"
+import { ArrowLeft, Save } from "lucide-react"
 import Link from "next/link"
 import { createClientSupabaseClient } from "@/lib/supabase"
 
 interface ProductType {
   id: number
+  name: string
   slug: string
-  title: string
   description: string
-  image_url: string
-  features: string[]
-  long_description?: string
 }
 
-// Static product data for fallback
+// Static product type data for fallback
 const staticProductTypes: Record<string, ProductType> = {
-  grocery: {
+  "vending-machines": {
     id: 1,
-    slug: "grocery",
-    title: "Grocery",
-    description: "Sell grocery items through automated retail with inventory management and freshness tracking.",
-    image_url: "/placeholder.svg?height=300&width=400",
-    features: ["Freshness Tracking", "Inventory Management", "Temperature Control"],
-    long_description:
-      "Our Grocery vending solutions enable retailers to sell fresh and packaged grocery items through automated retail channels. With advanced inventory management and freshness tracking, you can ensure your customers always receive quality products. Temperature control features maintain optimal conditions for perishable items.",
+    name: "Vending Machines",
+    slug: "vending-machines",
+    description: "Smart vending machines with advanced features and customization options.",
   },
-  vape: {
+  "payment-systems": {
     id: 2,
-    slug: "vape",
-    title: "Vape",
-    description: "Age verification and compliance features for vape product sales through automated retail.",
-    image_url: "/placeholder.svg?height=300&width=400",
-    features: ["Age Verification", "Compliance Tracking", "Inventory Management"],
-    long_description:
-      "Our Vape vending solutions include robust age verification systems to ensure regulatory compliance. The platform tracks all sales for compliance reporting and manages inventory efficiently to prevent stockouts of popular products.",
+    name: "Payment Systems",
+    slug: "payment-systems",
+    description: "Cashless payment solutions for vending machines and retail.",
   },
-  cannabis: {
+  accessories: {
     id: 3,
-    slug: "cannabis",
-    title: "Cannabis",
-    description: "Secure, compliant cannabis sales with age verification and inventory tracking.",
-    image_url: "/placeholder.svg?height=300&width=400",
-    features: ["Age Verification", "Compliance Tracking", "Secure Storage"],
-    long_description:
-      "Our Cannabis vending solutions provide secure, compliant automated retail for cannabis products. With comprehensive age verification, compliance tracking, and secure storage, you can confidently expand your cannabis retail operations.",
-  },
-  "fresh-food": {
-    id: 4,
-    slug: "fresh-food",
-    title: "Fresh Food",
-    description: "Temperature monitoring and freshness tracking for perishable food items.",
-    image_url: "/placeholder.svg?height=300&width=400",
-    features: ["Temperature Control", "Freshness Tracking", "Inventory Management"],
-    long_description:
-      "Our Fresh Food vending solutions maintain optimal temperature conditions for perishable items. Real-time monitoring ensures food safety and quality, while smart inventory management reduces waste and ensures freshness.",
+    name: "Accessories",
+    slug: "accessories",
+    description: "Add-ons and accessories for vending machines and payment systems.",
   },
 }
 
@@ -68,14 +44,10 @@ export default function EditProductTypePage({ params }: { params: { slug: string
   const [saving, setSaving] = useState(false)
   const [productType, setProductType] = useState<ProductType>({
     id: 0,
+    name: "",
     slug: "",
-    title: "",
     description: "",
-    image_url: "/placeholder.svg?height=300&width=400",
-    features: [],
-    long_description: "",
   })
-  const [newFeature, setNewFeature] = useState("")
 
   useEffect(() => {
     async function fetchProductType() {
@@ -134,23 +106,6 @@ export default function EditProductTypePage({ params }: { params: { slug: string
     setProductType((prev) => ({ ...prev, [name]: value }))
   }
 
-  const handleAddFeature = () => {
-    if (newFeature.trim()) {
-      setProductType((prev) => ({
-        ...prev,
-        features: [...prev.features, newFeature.trim()],
-      }))
-      setNewFeature("")
-    }
-  }
-
-  const handleRemoveFeature = (index: number) => {
-    setProductType((prev) => ({
-      ...prev,
-      features: prev.features.filter((_, i) => i !== index),
-    }))
-  }
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setSaving(true)
@@ -164,12 +119,9 @@ export default function EditProductTypePage({ params }: { params: { slug: string
           .from("product_types")
           .insert([
             {
+              name: productType.name,
               slug: productType.slug,
-              title: productType.title,
               description: productType.description,
-              image_url: productType.image_url,
-              features: productType.features,
-              long_description: productType.long_description,
             },
           ])
           .select()
@@ -185,12 +137,9 @@ export default function EditProductTypePage({ params }: { params: { slug: string
         const { error } = await supabase
           .from("product_types")
           .update({
+            name: productType.name,
             slug: productType.slug,
-            title: productType.title,
             description: productType.description,
-            image_url: productType.image_url,
-            features: productType.features,
-            long_description: productType.long_description,
           })
           .eq("id", productType.id)
 
@@ -225,7 +174,7 @@ export default function EditProductTypePage({ params }: { params: { slug: string
           <Link href="/admin/product-types" className="mr-4">
             <ArrowLeft className="h-5 w-5 text-gray-500 hover:text-gray-700" />
           </Link>
-          <h2 className="text-xl font-semibold">{isNew ? "Add New Product Type" : `Edit ${productType.title}`}</h2>
+          <h2 className="text-xl font-semibold">{isNew ? "Add New Product Type" : `Edit ${productType.name}`}</h2>
         </div>
         <button
           type="button"
@@ -249,13 +198,13 @@ export default function EditProductTypePage({ params }: { params: { slug: string
 
       <div className="bg-white rounded-lg shadow-sm p-6">
         <form onSubmit={handleSubmit}>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
               <input
                 type="text"
-                name="title"
-                value={productType.title}
+                name="name"
+                value={productType.name}
                 onChange={handleChange}
                 required
                 className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -274,73 +223,15 @@ export default function EditProductTypePage({ params }: { params: { slug: string
               />
             </div>
 
-            <div className="md:col-span-2">
+            <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-              <input
-                type="text"
+              <textarea
                 name="description"
                 value={productType.description}
-                onChange={handleChange}
-                required
-                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Long Description</label>
-              <textarea
-                name="long_description"
-                value={productType.long_description || ""}
                 onChange={handleChange}
                 rows={4}
                 className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Image URL</label>
-              <input
-                type="text"
-                name="image_url"
-                value={productType.image_url}
-                onChange={handleChange}
-                required
-                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Features</label>
-              <div className="flex">
-                <input
-                  type="text"
-                  value={newFeature}
-                  onChange={(e) => setNewFeature(e.target.value)}
-                  className="flex-1 px-3 py-2 border rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Add a feature"
-                />
-                <button
-                  type="button"
-                  onClick={handleAddFeature}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-r-md"
-                >
-                  <Plus className="h-5 w-5" />
-                </button>
-              </div>
-              <div className="mt-2 space-y-2">
-                {productType.features.map((feature, index) => (
-                  <div key={index} className="flex items-center justify-between bg-gray-50 px-3 py-2 rounded-md">
-                    <span>{feature}</span>
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveFeature(index)}
-                      className="text-red-600 hover:text-red-900"
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
-                  </div>
-                ))}
-              </div>
             </div>
           </div>
         </form>

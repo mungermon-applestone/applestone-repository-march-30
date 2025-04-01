@@ -21,29 +21,6 @@ interface BlogPost {
 
 // Static blog post data for fallback
 const staticBlogPosts: Record<string, BlogPost> = {
-  "1": {
-    id: 1,
-    slug: "future-of-automated-retail",
-    title: "The Future of Automated Retail",
-    content:
-      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed euismod, nisl vel ultricies lacinia, nisl nisl aliquam nisl, vel aliquam nisl nisl vel nisl. Sed euismod, nisl vel ultricies lacinia, nisl nisl aliquam nisl, vel aliquam nisl nisl vel nisl.",
-    image_url: "/placeholder.svg?height=400&width=800",
-    author: "John Doe",
-    date: "2023-01-15",
-    excerpt:
-      "Exploring the latest trends and technologies shaping the future of automated retail and vending solutions.",
-  },
-  "2": {
-    id: 2,
-    slug: "maximizing-roi-with-smart-vending",
-    title: "Maximizing ROI with Smart Vending Machines",
-    content:
-      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed euismod, nisl vel ultricies lacinia, nisl nisl aliquam nisl, vel aliquam nisl nisl vel nisl. Sed euismod, nisl vel ultricies lacinia, nisl nisl aliquam nisl, vel aliquam nisl nisl vel nisl.",
-    image_url: "/placeholder.svg?height=400&width=800",
-    author: "Jane Smith",
-    date: "2023-02-22",
-    excerpt: "Learn how smart vending technology can increase your return on investment and boost sales.",
-  },
   "future-of-automated-retail": {
     id: 1,
     slug: "future-of-automated-retail",

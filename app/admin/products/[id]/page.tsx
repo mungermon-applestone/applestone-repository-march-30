@@ -20,7 +20,7 @@ interface Product {
 
 interface ProductType {
   id: number
-  title: string
+  name: string
   slug: string
 }
 
@@ -28,30 +28,29 @@ interface ProductType {
 const staticProducts: Record<string, Product> = {
   "1": {
     id: 1,
-    name: "Smart Grocery Vending Machine",
-    description: "Advanced vending solution for grocery items with temperature control and inventory management.",
-    price: 5999,
-    image_url: "/placeholder.svg?height=600&width=600",
+    name: "Smart Vending Machine",
+    description: "Our flagship smart vending machine with touchscreen interface and cashless payment options.",
+    price: 3999.99,
+    image_url: "/placeholder.svg?height=400&width=400",
     product_type_id: 1,
-    features: ["Temperature Control", "Inventory Management", "Touchscreen Interface"],
+    features: ["Touchscreen", "Cashless Payment", "Remote Monitoring", "Inventory Tracking"],
   },
   "2": {
     id: 2,
-    name: "Compact Vape Dispenser",
-    description: "Secure vape product dispenser with age verification and compliance tracking.",
-    price: 3499,
-    image_url: "/placeholder.svg?height=600&width=600",
-    product_type_id: 2,
-    features: ["Age Verification", "Compact Design", "Inventory Tracking"],
+    name: "Compact Vending Solution",
+    description: "A smaller vending machine perfect for offices and small spaces.",
+    price: 2499.99,
+    image_url: "/placeholder.svg?height=400&width=400",
+    product_type_id: 1,
+    features: ["Space Efficient", "Energy Saving", "Digital Display", "Multiple Payment Options"],
   },
 }
 
 // Static product types for fallback
 const staticProductTypes: ProductType[] = [
-  { id: 1, title: "Grocery", slug: "grocery" },
-  { id: 2, title: "Vape", slug: "vape" },
-  { id: 3, title: "Cannabis", slug: "cannabis" },
-  { id: 4, title: "Fresh Food", slug: "fresh-food" },
+  { id: 1, name: "Vending Machines", slug: "vending-machines" },
+  { id: 2, name: "Payment Systems", slug: "payment-systems" },
+  { id: 3, name: "Accessories", slug: "accessories" },
 ]
 
 export default function EditProductPage({ params }: { params: { id: string } }) {
@@ -59,23 +58,23 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
   const isNew = params.id === "new"
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [productTypes, setProductTypes] = useState<ProductType[]>([])
   const [product, setProduct] = useState<Product>({
     id: 0,
     name: "",
     description: "",
     price: 0,
-    image_url: "/placeholder.svg?height=600&width=600",
+    image_url: "/placeholder.svg?height=400&width=400",
     product_type_id: 1,
     features: [],
   })
-  const [productTypes, setProductTypes] = useState<ProductType[]>([])
-  const [newFeature, setNewFeature] = useState("")
+  const [featureInput, setFeatureInput] = useState("")
 
   useEffect(() => {
     async function fetchProductTypes() {
       try {
         const supabase = createClientSupabaseClient()
-        const { data, error } = await supabase.from("product_types").select("id, title, slug").order("title")
+        const { data, error } = await supabase.from("product_types").select("id, name, slug")
 
         if (error) {
           console.error("Error fetching product types:", error)
@@ -129,28 +128,25 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
     const { name, value } = e.target
 
     if (name === "price") {
-      // Convert to number and handle invalid input
-      const numValue = Number.parseFloat(value) || 0
-      setProduct((prev) => ({ ...prev, [name]: numValue }))
+      setProduct((prev) => ({ ...prev, [name]: Number.parseFloat(value) || 0 }))
     } else if (name === "product_type_id") {
-      // Convert to number for select
-      setProduct((prev) => ({ ...prev, [name]: Number.parseInt(value) }))
+      setProduct((prev) => ({ ...prev, [name]: Number.parseInt(value) || 1 }))
     } else {
       setProduct((prev) => ({ ...prev, [name]: value }))
     }
   }
 
-  const handleAddFeature = () => {
-    if (newFeature.trim()) {
+  const addFeature = () => {
+    if (featureInput.trim()) {
       setProduct((prev) => ({
         ...prev,
-        features: [...prev.features, newFeature.trim()],
+        features: [...(prev.features || []), featureInput.trim()],
       }))
-      setNewFeature("")
+      setFeatureInput("")
     }
   }
 
-  const handleRemoveFeature = (index: number) => {
+  const removeFeature = (index: number) => {
     setProduct((prev) => ({
       ...prev,
       features: prev.features.filter((_, i) => i !== index),
@@ -268,18 +264,6 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
               />
             </div>
 
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-              <textarea
-                name="description"
-                value={product.description}
-                onChange={handleChange}
-                required
-                rows={3}
-                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Price ($)</label>
               <input
@@ -287,9 +271,9 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
                 name="price"
                 value={product.price}
                 onChange={handleChange}
-                required
-                min="0"
                 step="0.01"
+                min="0"
+                required
                 className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -305,7 +289,7 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
               >
                 {productTypes.map((type) => (
                   <option key={type.id} value={type.id}>
-                    {type.title}
+                    {type.name}
                   </option>
                 ))}
               </select>
@@ -318,7 +302,17 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
                 name="image_url"
                 value={product.image_url}
                 onChange={handleChange}
-                required
+                className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+              <textarea
+                name="description"
+                value={product.description}
+                onChange={handleChange}
+                rows={4}
                 className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -328,32 +322,33 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
               <div className="flex mb-2">
                 <input
                   type="text"
-                  value={newFeature}
-                  onChange={(e) => setNewFeature(e.target.value)}
+                  value={featureInput}
+                  onChange={(e) => setFeatureInput(e.target.value)}
                   className="flex-1 px-3 py-2 border rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Add a feature"
                 />
                 <button
                   type="button"
-                  onClick={handleAddFeature}
+                  onClick={addFeature}
                   className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-r-md"
                 >
                   Add
                 </button>
               </div>
               <div className="space-y-2">
-                {product.features.map((feature, index) => (
-                  <div key={index} className="flex items-center justify-between bg-gray-50 px-3 py-2 rounded-md">
-                    <span>{feature}</span>
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveFeature(index)}
-                      className="text-red-600 hover:text-red-900"
-                    >
-                      Remove
-                    </button>
-                  </div>
-                ))}
+                {product.features &&
+                  product.features.map((feature, index) => (
+                    <div key={index} className="flex items-center bg-gray-50 px-3 py-2 rounded-md">
+                      <span className="flex-1">{feature}</span>
+                      <button
+                        type="button"
+                        onClick={() => removeFeature(index)}
+                        className="text-red-600 hover:text-red-800"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ))}
               </div>
             </div>
           </div>

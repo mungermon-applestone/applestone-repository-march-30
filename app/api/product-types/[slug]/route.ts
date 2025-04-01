@@ -1,6 +1,28 @@
 import { NextResponse } from "next/server"
 import { createServerSupabaseClient } from "@/lib/supabase"
 
+// Static product type data for fallback
+const staticProductTypes = {
+  "vending-machines": {
+    id: 1,
+    name: "Vending Machines",
+    slug: "vending-machines",
+    description: "Smart vending machines with advanced features and customization options.",
+  },
+  "payment-systems": {
+    id: 2,
+    name: "Payment Systems",
+    slug: "payment-systems",
+    description: "Cashless payment solutions for vending machines and retail.",
+  },
+  accessories: {
+    id: 3,
+    name: "Accessories",
+    slug: "accessories",
+    description: "Add-ons and accessories for vending machines and payment systems.",
+  },
+}
+
 export async function GET(request: Request, { params }: { params: { slug: string } }) {
   try {
     const supabase = createServerSupabaseClient()
@@ -18,115 +40,18 @@ export async function GET(request: Request, { params }: { params: { slug: string
       }
     }
 
-    if (error || !data) {
+    if (error) {
+      console.error("Error fetching product type:", error)
       // Fallback to static data
-      const staticData = getStaticProductType(params.slug)
-      if (staticData) {
-        return NextResponse.json(staticData)
-      }
-      return NextResponse.json({ error: "Product type not found" }, { status: 404 })
+      return NextResponse.json(staticProductTypes[params.slug] || { error: "Product type not found" }, {
+        status: staticProductTypes[params.slug] ? 200 : 404,
+      })
     }
 
     return NextResponse.json(data)
   } catch (error) {
-    console.error("Error fetching product type:", error)
-
-    // Fallback to static data
-    const staticData = getStaticProductType(params.slug)
-    if (staticData) {
-      return NextResponse.json(staticData)
-    }
-
-    return NextResponse.json({ error: "Failed to fetch product type" }, { status: 500 })
+    console.error("Error in GET product type:", error)
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 })
   }
-}
-
-// Static data fallback
-function getStaticProductType(slugOrId: string) {
-  const staticProductTypes = {
-    "1": {
-      id: 1,
-      slug: "grocery",
-      title: "Grocery",
-      description: "Sell grocery items through automated retail with inventory management and freshness tracking.",
-      image_url: "/placeholder.svg?height=300&width=400",
-      features: ["Freshness Tracking", "Inventory Management", "Temperature Control"],
-      long_description:
-        "Our Grocery vending solutions enable retailers to sell fresh and packaged grocery items through automated retail channels. With advanced inventory management and freshness tracking, you can ensure your customers always receive quality products. Temperature control features maintain optimal conditions for perishable items.",
-    },
-    "2": {
-      id: 2,
-      slug: "vape",
-      title: "Vape",
-      description: "Age verification and compliance features for vape product sales through automated retail.",
-      image_url: "/placeholder.svg?height=300&width=400",
-      features: ["Age Verification", "Compliance Tracking", "Inventory Management"],
-      long_description:
-        "Our Vape vending solutions include robust age verification systems to ensure regulatory compliance. The platform tracks all sales for compliance reporting and manages inventory efficiently to prevent stockouts of popular products.",
-    },
-    "3": {
-      id: 3,
-      slug: "cannabis",
-      title: "Cannabis",
-      description: "Secure, compliant cannabis sales with age verification and inventory tracking.",
-      image_url: "/placeholder.svg?height=300&width=400",
-      features: ["Age Verification", "Compliance Tracking", "Secure Storage"],
-      long_description:
-        "Our Cannabis vending solutions provide secure, compliant automated retail for cannabis products. With comprehensive age verification, compliance tracking, and secure storage, you can confidently expand your cannabis retail operations.",
-    },
-    "4": {
-      id: 4,
-      slug: "fresh-food",
-      title: "Fresh Food",
-      description: "Temperature monitoring and freshness tracking for perishable food items.",
-      image_url: "/placeholder.svg?height=300&width=400",
-      features: ["Temperature Control", "Freshness Tracking", "Inventory Management"],
-      long_description:
-        "Our Fresh Food vending solutions maintain optimal temperature conditions for perishable items. Real-time monitoring ensures food safety and quality, while smart inventory management reduces waste and ensures freshness.",
-    },
-    grocery: {
-      id: 1,
-      slug: "grocery",
-      title: "Grocery",
-      description: "Sell grocery items through automated retail with inventory management and freshness tracking.",
-      image_url: "/placeholder.svg?height=300&width=400",
-      features: ["Freshness Tracking", "Inventory Management", "Temperature Control"],
-      long_description:
-        "Our Grocery vending solutions enable retailers to sell fresh and packaged grocery items through automated retail channels. With advanced inventory management and freshness tracking, you can ensure your customers always receive quality products. Temperature control features maintain optimal conditions for perishable items.",
-    },
-    vape: {
-      id: 2,
-      slug: "vape",
-      title: "Vape",
-      description: "Age verification and compliance features for vape product sales through automated retail.",
-      image_url: "/placeholder.svg?height=300&width=400",
-      features: ["Age Verification", "Compliance Tracking", "Inventory Management"],
-      long_description:
-        "Our Vape vending solutions include robust age verification systems to ensure regulatory compliance. The platform tracks all sales for compliance reporting and manages inventory efficiently to prevent stockouts of popular products.",
-    },
-    cannabis: {
-      id: 3,
-      slug: "cannabis",
-      title: "Cannabis",
-      description: "Secure, compliant cannabis sales with age verification and inventory tracking.",
-      image_url: "/placeholder.svg?height=300&width=400",
-      features: ["Age Verification", "Compliance Tracking", "Secure Storage"],
-      long_description:
-        "Our Cannabis vending solutions provide secure, compliant automated retail for cannabis products. With comprehensive age verification, compliance tracking, and secure storage, you can confidently expand your cannabis retail operations.",
-    },
-    "fresh-food": {
-      id: 4,
-      slug: "fresh-food",
-      title: "Fresh Food",
-      description: "Temperature monitoring and freshness tracking for perishable food items.",
-      image_url: "/placeholder.svg?height=300&width=400",
-      features: ["Temperature Control", "Freshness Tracking", "Inventory Management"],
-      long_description:
-        "Our Fresh Food vending solutions maintain optimal temperature conditions for perishable items. Real-time monitoring ensures food safety and quality, while smart inventory management reduces waste and ensures freshness.",
-    },
-  }
-
-  // Try to find by slug or ID
-  return staticProductTypes[slugOrId] || null
 }
 

@@ -1,16 +1,14 @@
 import { Suspense } from "react"
 import Image from "next/image"
 import Link from "next/link"
+import { ArrowLeft } from "lucide-react"
 import { createServerSupabaseClient } from "@/lib/supabase"
 
 interface ProductType {
   id: number
+  name: string
   slug: string
-  title: string
   description: string
-  image_url: string
-  features: string[]
-  long_description?: string
 }
 
 interface Product {
@@ -24,83 +22,83 @@ interface Product {
 
 // Static product type data for fallback
 const staticProductTypes: Record<string, ProductType> = {
-  grocery: {
+  "vending-machines": {
     id: 1,
-    slug: "grocery",
-    title: "Grocery",
-    description: "Sell grocery items through automated retail with inventory management and freshness tracking.",
-    image_url: "/placeholder.svg?height=300&width=400",
-    features: ["Freshness Tracking", "Inventory Management", "Temperature Control"],
-    long_description:
-      "Our Grocery vending solutions enable retailers to sell fresh and packaged grocery items through automated retail channels. With advanced inventory management and freshness tracking, you can ensure your customers always receive quality products. Temperature control features maintain optimal conditions for perishable items.",
+    name: "Vending Machines",
+    slug: "vending-machines",
+    description: "Smart vending machines with advanced features and customization options.",
   },
-  vape: {
+  "payment-systems": {
     id: 2,
-    slug: "vape",
-    title: "Vape",
-    description: "Age verification and compliance features for vape product sales through automated retail.",
-    image_url: "/placeholder.svg?height=300&width=400",
-    features: ["Age Verification", "Compliance Tracking", "Inventory Management"],
-    long_description:
-      "Our Vape vending solutions include robust age verification systems to ensure regulatory compliance. The platform tracks all sales for compliance reporting and manages inventory efficiently to prevent stockouts of popular products.",
+    name: "Payment Systems",
+    slug: "payment-systems",
+    description: "Cashless payment solutions for vending machines and retail.",
   },
-  cannabis: {
+  accessories: {
     id: 3,
-    slug: "cannabis",
-    title: "Cannabis",
-    description: "Secure, compliant cannabis sales with age verification and inventory tracking.",
-    image_url: "/placeholder.svg?height=300&width=400",
-    features: ["Age Verification", "Compliance Tracking", "Secure Storage"],
-    long_description:
-      "Our Cannabis vending solutions provide secure, compliant automated retail for cannabis products. With comprehensive age verification, compliance tracking, and secure storage, you can confidently expand your cannabis retail operations.",
-  },
-  "fresh-food": {
-    id: 4,
-    slug: "fresh-food",
-    title: "Fresh Food",
-    description: "Temperature monitoring and freshness tracking for perishable food items.",
-    image_url: "/placeholder.svg?height=300&width=400",
-    features: ["Temperature Control", "Freshness Tracking", "Inventory Management"],
-    long_description:
-      "Our Fresh Food vending solutions maintain optimal temperature conditions for perishable items. Real-time monitoring ensures food safety and quality, while smart inventory management reduces waste and ensures freshness.",
+    name: "Accessories",
+    slug: "accessories",
+    description: "Add-ons and accessories for vending machines and payment systems.",
   },
 }
 
-// Static product data for fallback
-const staticProducts: Product[] = [
-  {
-    id: 1,
-    name: "Smart Grocery Vending Machine",
-    description: "Advanced vending solution for grocery items with temperature control and inventory management.",
-    price: 5999,
-    image_url: "/placeholder.svg?height=300&width=400",
-    product_type_id: 1,
-  },
-  {
-    id: 2,
-    name: "Compact Vape Dispenser",
-    description: "Secure vape product dispenser with age verification and compliance tracking.",
-    price: 3499,
-    image_url: "/placeholder.svg?height=300&width=400",
-    product_type_id: 2,
-  },
-  {
-    id: 3,
-    name: "Cannabis Retail Kiosk",
-    description: "Secure, compliant cannabis retail kiosk with age verification and inventory tracking.",
-    price: 6999,
-    image_url: "/placeholder.svg?height=300&width=400",
-    product_type_id: 3,
-  },
-  {
-    id: 4,
-    name: "Fresh Food Vending Solution",
-    description: "Temperature-controlled vending solution for fresh food items.",
-    price: 7499,
-    image_url: "/placeholder.svg?height=300&width=400",
-    product_type_id: 4,
-  },
-]
+// Static products data for fallback
+const staticProducts: Record<number, Product[]> = {
+  1: [
+    {
+      id: 1,
+      name: "Smart Vending Machine",
+      description: "Our flagship smart vending machine with touchscreen interface and cashless payment options.",
+      price: 3999.99,
+      image_url: "/placeholder.svg?height=300&width=300",
+      product_type_id: 1,
+    },
+    {
+      id: 2,
+      name: "Compact Vending Solution",
+      description: "A smaller vending machine perfect for offices and small spaces.",
+      price: 2499.99,
+      image_url: "/placeholder.svg?height=300&width=300",
+      product_type_id: 1,
+    },
+  ],
+  2: [
+    {
+      id: 3,
+      name: "Cashless Payment Terminal",
+      description: "Accept credit cards, mobile payments, and more with this versatile payment terminal.",
+      price: 799.99,
+      image_url: "/placeholder.svg?height=300&width=300",
+      product_type_id: 2,
+    },
+    {
+      id: 4,
+      name: "Mobile Payment Integration Kit",
+      description: "Add mobile payment capabilities to your existing vending machines.",
+      price: 349.99,
+      image_url: "/placeholder.svg?height=300&width=300",
+      product_type_id: 2,
+    },
+  ],
+  3: [
+    {
+      id: 5,
+      name: "Temperature Control Module",
+      description: "Keep products at the optimal temperature with this advanced cooling system.",
+      price: 599.99,
+      image_url: "/placeholder.svg?height=300&width=300",
+      product_type_id: 3,
+    },
+    {
+      id: 6,
+      name: "Inventory Management System",
+      description: "Track inventory levels and get alerts when products need restocking.",
+      price: 449.99,
+      image_url: "/placeholder.svg?height=300&width=300",
+      product_type_id: 3,
+    },
+  ],
+}
 
 async function getProductType(slug: string) {
   try {
@@ -139,13 +137,13 @@ async function getProductsByType(productTypeId: number) {
 
     if (error) {
       console.error("Error fetching products by type:", error)
-      return staticProducts.filter((p) => p.product_type_id === productTypeId)
+      return staticProducts[productTypeId] || []
     }
 
     return data
   } catch (error) {
     console.error("Error in getProductsByType:", error)
-    return staticProducts.filter((p) => p.product_type_id === productTypeId)
+    return staticProducts[productTypeId] || []
   }
 }
 
@@ -155,10 +153,10 @@ export default async function ProductTypePage({ params }: { params: { slug: stri
   if (!productType) {
     return (
       <div className="container mx-auto px-4 py-16 text-center">
-        <h1 className="text-2xl font-bold mb-4">Product Type Not Found</h1>
-        <p className="mb-8">The product type you're looking for doesn't exist or has been removed.</p>
-        <Link href="/product-types" className="text-blue-600 hover:underline">
-          Browse all product types
+        <h1 className="text-2xl font-bold mb-4">Product Category Not Found</h1>
+        <p className="mb-8">The product category you're looking for doesn't exist or has been removed.</p>
+        <Link href="/products" className="text-blue-600 hover:underline">
+          View All Products
         </Link>
       </div>
     )
@@ -168,78 +166,45 @@ export default async function ProductTypePage({ params }: { params: { slug: stri
 
   return (
     <main className="container mx-auto px-4 py-8">
-      <div className="grid lg:grid-cols-2 gap-8 mb-12">
-        <div className="relative aspect-video">
-          <Suspense fallback={<div className="w-full h-full bg-gray-200 animate-pulse rounded-lg"></div>}>
-            <Image
-              src={productType.image_url || "/placeholder.svg?height=400&width=600"}
-              alt={productType.title}
-              fill
-              className="object-cover rounded-lg"
-              priority
-            />
-          </Suspense>
-        </div>
-
-        <div>
-          <h1 className="text-3xl font-bold mb-4">{productType.title}</h1>
-          <p className="text-lg mb-6">{productType.description}</p>
-
-          <div className="mb-6">
-            <h2 className="text-xl font-semibold mb-3">Key Features</h2>
-            <ul className="grid grid-cols-1 md:grid-cols-2 gap-2">
-              {productType.features.map((feature, index) => (
-                <li key={index} className="flex items-center">
-                  <div className="h-2 w-2 bg-blue-600 rounded-full mr-2"></div>
-                  {feature}
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {productType.long_description && (
-            <div className="mb-6">
-              <h2 className="text-xl font-semibold mb-3">About {productType.title} Solutions</h2>
-              <p className="text-gray-700">{productType.long_description}</p>
-            </div>
-          )}
-
-          <Link
-            href="/contact"
-            className="inline-block bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-md font-medium"
-          >
-            Request More Information
-          </Link>
-        </div>
+      <div className="mb-8">
+        <Link href="/products" className="inline-flex items-center text-blue-600 hover:text-blue-800">
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back to All Products
+        </Link>
       </div>
 
-      {products.length > 0 && (
-        <div>
-          <h2 className="text-2xl font-bold mb-6">{productType.title} Products</h2>
+      <div className="mb-12">
+        <h1 className="text-3xl font-bold mb-4">{productType.name}</h1>
+        <p className="text-lg text-gray-700 max-w-3xl">{productType.description}</p>
+      </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {products.map((product) => (
-              <Link key={product.id} href={`/products/${product.id}`} className="group">
-                <div className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300">
-                  <div className="relative h-48">
+      {products.length === 0 ? (
+        <div className="text-center py-12">
+          <p className="text-gray-500">No products found in this category.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {products.map((product) => (
+            <Link key={product.id} href={`/products/${product.id}`} className="group">
+              <div className="bg-white rounded-lg shadow-sm overflow-hidden transition-shadow hover:shadow-md">
+                <div className="relative aspect-square">
+                  <Suspense fallback={<div className="w-full h-full bg-gray-200 animate-pulse"></div>}>
                     <Image
-                      src={product.image_url || "/placeholder.svg?height=300&width=400"}
+                      src={product.image_url || "/placeholder.svg?height=300&width=300"}
                       alt={product.name}
                       fill
-                      className="object-cover group-hover:scale-105 transition-transform duration-300"
+                      className="object-contain p-4"
                     />
-                  </div>
-                  <div className="p-4">
-                    <h3 className="text-lg font-semibold mb-2 group-hover:text-blue-600 transition-colors duration-300">
-                      {product.name}
-                    </h3>
-                    <p className="text-gray-700 text-sm mb-3">{product.description}</p>
-                    <div className="text-blue-600 font-bold">${product.price.toLocaleString()}</div>
-                  </div>
+                  </Suspense>
                 </div>
-              </Link>
-            ))}
-          </div>
+                <div className="p-4">
+                  <h2 className="text-lg font-semibold mb-2 group-hover:text-blue-600">{product.name}</h2>
+                  <p className="text-gray-600 text-sm mb-3 line-clamp-2">{product.description}</p>
+                  <p className="text-blue-600 font-semibold">${product.price.toFixed(2)}</p>
+                </div>
+              </div>
+            </Link>
+          ))}
         </div>
       )}
     </main>
