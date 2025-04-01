@@ -1,26 +1,30 @@
 import { NextResponse } from "next/server"
 import { createServerSupabaseClient } from "@/lib/supabase"
 
-export async function GET(request: Request, { params }: { params: { slug: string } }) {
+// This file might be causing the conflict - let's rename the parameter to [slug]
+export async function GET(request: Request, { params }: { params: { id: string } }) {
   try {
     const supabase = createServerSupabaseClient()
 
-    // First try to fetch by slug
-    let { data, error } = await supabase.from("product_types").select("*").eq("slug", params.slug).single()
+    // First try to fetch by ID if it's numeric
+    if (!isNaN(Number.parseInt(params.id))) {
+      const { data, error } = await supabase
+        .from("product_types")
+        .select("*")
+        .eq("id", Number.parseInt(params.id))
+        .single()
 
-    // If not found by slug and it's numeric, try by ID
-    if ((error || !data) && !isNaN(Number.parseInt(params.slug))) {
-      const result = await supabase.from("product_types").select("*").eq("id", Number.parseInt(params.slug)).single()
-
-      if (!result.error && result.data) {
-        data = result.data
-        error = null
+      if (!error && data) {
+        return NextResponse.json(data)
       }
     }
 
+    // If not found by ID or ID is not numeric, try by slug
+    const { data, error } = await supabase.from("product_types").select("*").eq("slug", params.id).single()
+
     if (error || !data) {
       // Fallback to static data
-      const staticData = getStaticProductType(params.slug)
+      const staticData = getStaticProductType(params.id)
       if (staticData) {
         return NextResponse.json(staticData)
       }
@@ -32,7 +36,7 @@ export async function GET(request: Request, { params }: { params: { slug: string
     console.error("Error fetching product type:", error)
 
     // Fallback to static data
-    const staticData = getStaticProductType(params.slug)
+    const staticData = getStaticProductType(params.id)
     if (staticData) {
       return NextResponse.json(staticData)
     }
@@ -42,7 +46,7 @@ export async function GET(request: Request, { params }: { params: { slug: string
 }
 
 // Static data fallback
-function getStaticProductType(slugOrId: string) {
+function getStaticProductType(idOrSlug: string) {
   const staticProductTypes = {
     "1": {
       id: 1,
@@ -126,7 +130,7 @@ function getStaticProductType(slugOrId: string) {
     },
   }
 
-  // Try to find by slug or ID
-  return staticProductTypes[slugOrId] || null
+  // Try to find by ID or slug
+  return staticProductTypes[idOrSlug] || null
 }
 

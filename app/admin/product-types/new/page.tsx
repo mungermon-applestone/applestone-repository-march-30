@@ -1,6 +1,6 @@
-import EditProductTypePage from "../[id]/page"
+import { redirect } from "next/navigation"
 
 export default function NewProductTypePage() {
-  return <EditProductTypePage params={{ id: "new" }} />
+  redirect("/admin/product-types/new")
 }
 

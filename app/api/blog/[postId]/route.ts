@@ -1,26 +1,30 @@
 import { NextResponse } from "next/server"
 import { createServerSupabaseClient } from "@/lib/supabase"
 
-export async function GET(request: Request, { params }: { params: { slug: string } }) {
+// This file might be causing the conflict - let's rename the parameter to [slug]
+export async function GET(request: Request, { params }: { params: { postId: string } }) {
   try {
     const supabase = createServerSupabaseClient()
 
-    // First try to fetch by slug
-    let { data, error } = await supabase.from("blog_posts").select("*").eq("slug", params.slug).single()
+    // First try to fetch by ID if it's numeric
+    if (!isNaN(Number.parseInt(params.postId))) {
+      const { data, error } = await supabase
+        .from("blog_posts")
+        .select("*")
+        .eq("id", Number.parseInt(params.postId))
+        .single()
 
-    // If not found by slug and it's numeric, try by ID
-    if ((error || !data) && !isNaN(Number.parseInt(params.slug))) {
-      const result = await supabase.from("blog_posts").select("*").eq("id", Number.parseInt(params.slug)).single()
-
-      if (!result.error && result.data) {
-        data = result.data
-        error = null
+      if (!error && data) {
+        return NextResponse.json(data)
       }
     }
 
+    // If not found by ID or ID is not numeric, try by slug
+    const { data, error } = await supabase.from("blog_posts").select("*").eq("slug", params.postId).single()
+
     if (error || !data) {
       // Fallback to static data
-      const staticData = getStaticBlogPost(params.slug)
+      const staticData = getStaticBlogPost(params.postId)
       if (staticData) {
         return NextResponse.json(staticData)
       }
@@ -32,7 +36,7 @@ export async function GET(request: Request, { params }: { params: { slug: string
     console.error("Error fetching blog post:", error)
 
     // Fallback to static data
-    const staticData = getStaticBlogPost(params.slug)
+    const staticData = getStaticBlogPost(params.postId)
     if (staticData) {
       return NextResponse.json(staticData)
     }
@@ -42,7 +46,7 @@ export async function GET(request: Request, { params }: { params: { slug: string
 }
 
 // Static data fallback
-function getStaticBlogPost(slugOrId: string) {
+function getStaticBlogPost(postIdOrSlug: string) {
   const staticBlogPosts = {
     "1": {
       id: 1,
@@ -92,7 +96,7 @@ function getStaticBlogPost(slugOrId: string) {
     },
   }
 
-  // Try to find by slug or ID
-  return staticBlogPosts[slugOrId] || null
+  // Try to find by ID or slug
+  return staticBlogPosts[postIdOrSlug] || null
 }
 
